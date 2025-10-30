@@ -1,0 +1,3 @@
+install node with version which you choose
+
+npx create-react-app .
