@@ -27,3 +27,45 @@
   color: #666;
   font-size: 1.1rem;
 }
+
+.data-preview {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-top: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: left;
+}
+
+.data-preview h3 {
+  color: #667eea;
+  margin-bottom: 1rem;
+}
+
+.data-preview h4 {
+  color: #333;
+  margin: 1.5rem 0 0.5rem 0;
+}
+
+.data-preview p {
+  margin: 0.5rem 0;
+  font-size: 1rem;
+}
+
+.station-sample {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+
+.station-sample pre {
+  background: #1e1e1e;
+  color: #d4d4d4;
+  padding: 1rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
