@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import Header from './components/Header';
+import StatsCards from './components/StatsCards';
 import { generateMockStations, generateHistoricalData } from './data/mockData';
 
 function App() {
@@ -25,9 +26,15 @@ function App() {
       <Header activeTab={activeTab} setActiveTab={setActiveTab} />
       
       <main className="main-content">
-        <h2>Tab hiện tại: {activeTab}</h2>
+        <div className="page-header">
+          <h2>🏠 Trang chủ - Dashboard</h2>
+          <p className="page-subtitle">Tổng quan chất lượng không khí thành phố</p>
+        </div>
+
+        <StatsCards stations={stations} />
+
         <div className="data-preview">
-          <h3>Dữ liệu đã tải</h3>
+          <h3>📊 Dữ liệu chi tiết</h3>
           <p>Số trạm đo: {stations.length}</p>
           <p>Dữ liệu lịch sử: {historicalData.length} điểm</p>
           

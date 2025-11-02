@@ -15,17 +15,22 @@
   max-width: 1400px;
   margin: 0 auto;
   padding: 2rem;
-  text-align: center;
 }
 
-.main-content h2 {
-  color: #333;
+.page-header {
   margin-bottom: 1rem;
 }
 
-.main-content p {
+.page-header h2 {
+  color: #333;
+  margin: 0 0 0.5rem 0;
+  font-size: 2rem;
+}
+
+.page-subtitle {
   color: #666;
   font-size: 1.1rem;
+  margin: 0;
 }
 
 .data-preview {
