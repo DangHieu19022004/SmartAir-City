@@ -6,6 +6,7 @@ import './App.css';
 import Header from './components/Header';
 import StatsCards from './components/StatsCards';
 import AirQualityChart from './components/AirQualityChart';
+import StationComparisonChart from './components/StationComparisonChart';
 import { generateMockStations, generateHistoricalData } from './data/mockData';
 
 function App() {
@@ -38,6 +39,8 @@ function App() {
         <StatsCards stations={stations} />
 
         <AirQualityChart historicalData={historicalData} />
+
+        <StationComparisonChart stations={stations} />
 
         <div className="data-preview">
           <h3>📊 Dữ liệu chi tiết</h3>
