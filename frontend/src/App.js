@@ -10,6 +10,7 @@ import StationComparisonChart from './components/StationComparisonChart';
 import AirQualityMap from './components/AirQualityMap';
 import AlertBanner from './components/AlertBanner';
 import APIDataViewer from './components/APIDataViewer';
+import About from './components/About';
 import { generateMockStations, generateHistoricalData } from './data/mockData';
 
 function App() {
@@ -73,6 +74,9 @@ function App() {
             <APIDataViewer stations={stations} />
           </>
         );
+      
+      case 'about':
+        return <About />;
       
       default:
         return (
