@@ -63,14 +63,51 @@
   font-size: 1.05rem;
 }
 
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .alert-banner {
+    margin: 1.2rem 0;
+  }
+}
+
 @media (max-width: 768px) {
+  .alert-banner {
+    padding: 1rem;
+    margin: 1rem 0;
+  }
+  
+  .alert-icon {
+    font-size: 1.75rem;
+  }
+  
+  .alert-content strong {
+    font-size: 1rem;
+  }
+  
+  .alert-content {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
   .alert-banner {
     flex-direction: column;
     text-align: center;
-    padding: 1rem;
+    padding: 0.85rem 1rem;
+    margin: 0.75rem 0;
   }
   
   .alert-icon {
     font-size: 1.5rem;
+  }
+  
+  .alert-content strong {
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .alert-content {
+    font-size: 0.9rem;
+    line-height: 1.5;
   }
 }

@@ -60,8 +60,59 @@
   margin-top: 0.5rem;
 }
 
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .map-container {
+    height: 500px;
+    margin: 1.5rem 0;
+  }
+}
+
 @media (max-width: 768px) {
   .map-container {
     height: 400px;
+    margin: 1.5rem 0;
+  }
+  
+  .popup-content h3 {
+    font-size: 1rem;
+  }
+  
+  .aqi-badge {
+    padding: 0.4rem 0.8rem;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .map-container {
+    height: 350px;
+    margin: 1rem 0;
+    border-radius: 8px;
+  }
+  
+  .popup-content {
+    min-width: 180px;
+  }
+  
+  .popup-content h3 {
+    font-size: 0.95rem;
+  }
+  
+  .aqi-badge {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.95rem;
+  }
+  
+  .popup-details {
+    padding: 0.5rem;
+  }
+  
+  .popup-details p {
+    font-size: 0.85rem;
+  }
+  
+  .update-time {
+    font-size: 0.75rem;
   }
 }
