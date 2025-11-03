@@ -7,6 +7,7 @@ import Header from './components/Header';
 import StatsCards from './components/StatsCards';
 import AirQualityChart from './components/AirQualityChart';
 import StationComparisonChart from './components/StationComparisonChart';
+import AirQualityMap from './components/AirQualityMap';
 import { generateMockStations, generateHistoricalData } from './data/mockData';
 
 function App() {
@@ -26,34 +27,58 @@ function App() {
     console.log('Historical data loaded:', initialHistory);
   }, []);
 
+  // Handle station click on map
+  const handleStationClick = (station) => {
+    console.log('Station clicked:', station);
+  };
+
+  // Render content based on active tab
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'home':
+        return (
+          <>
+            <div className="page-header">
+              <h2>🏠 Trang chủ - Dashboard</h2>
+              <p className="page-subtitle">Tổng quan chất lượng không khí thành phố</p>
+            </div>
+
+            <StatsCards stations={stations} />
+            <AirQualityChart historicalData={historicalData} />
+            <StationComparisonChart stations={stations} />
+          </>
+        );
+      
+      case 'map':
+        return (
+          <>
+            <div className="page-header">
+              <h2>🗺️ Bản đồ - Trạm đo chất lượng không khí</h2>
+              <p className="page-subtitle">
+                Nhấp vào các điểm đo trên bản đồ để xem thông tin chi tiết
+              </p>
+            </div>
+
+            <AirQualityMap stations={stations} onStationClick={handleStationClick} />
+          </>
+        );
+      
+      default:
+        return (
+          <div className="page-header">
+            <h2>Đang phát triển...</h2>
+            <p className="page-subtitle">Tính năng này sẽ được hoàn thiện trong các commit tiếp theo</p>
+          </div>
+        );
+    }
+  };
+
   return (
     <div className="App">
       <Header activeTab={activeTab} setActiveTab={setActiveTab} />
       
       <main className="main-content">
-        <div className="page-header">
-          <h2>🏠 Trang chủ - Dashboard</h2>
-          <p className="page-subtitle">Tổng quan chất lượng không khí thành phố</p>
-        </div>
-
-        <StatsCards stations={stations} />
-
-        <AirQualityChart historicalData={historicalData} />
-
-        <StationComparisonChart stations={stations} />
-
-        <div className="data-preview">
-          <h3>📊 Dữ liệu chi tiết</h3>
-          <p>Số trạm đo: {stations.length}</p>
-          <p>Dữ liệu lịch sử: {historicalData.length} điểm</p>
-          
-          {stations.length > 0 && (
-            <div className="station-sample">
-              <h4>Ví dụ trạm đầu tiên:</h4>
-              <pre>{JSON.stringify(stations[0], null, 2)}</pre>
-            </div>
-          )}
-        </div>
+        {renderContent()}
       </main>
     </div>
   );
