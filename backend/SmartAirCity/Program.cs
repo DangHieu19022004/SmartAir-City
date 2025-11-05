@@ -1,44 +1,44 @@
-var builder = WebApplication.CreateBuilder(args);
+//  SPDX-License-Identifier: MIT
+//  © 2025 SmartAir City Team
+ 
+//  This source code is licensed under the MIT license found in the
+//  LICENSE file in the root directory of this source tree.
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+using SmartAirCity.Data;
+using SmartAirCity.Services;
+using Microsoft.Extensions.DependencyInjection;
+
+var builder = WebApplication.CreateBuilder(args);
+Console.WriteLine("=== Environment Variables Check ===");
+Console.WriteLine($"MongoDb: {builder.Configuration["ConnectionStrings:MongoDb"]}");
+Console.WriteLine($"Database: {builder.Configuration["Mongo:Database"]}");
+Console.WriteLine($"OpenAQ Key: {builder.Configuration["OpenAQ:ApiKey"]}");
+Console.WriteLine("===================================");
+
+// Add services
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddHttpClient();
+
+// MongoDB Context
+builder.Services.AddSingleton<MongoDbContext>();
+
+// Services
+builder.Services.AddSingleton<DataNormalizationService>();
+builder.Services.AddSingleton<OpenAQLiveClient>();
+builder.Services.AddHostedService<OpenAQService>();
+builder.Services.AddScoped<AirQualityService>();
+
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(); 
 }
 
-app.UseHttpsRedirection();
-
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
-
+app.UseRouting();
+app.MapControllers();
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
