@@ -38,6 +38,10 @@ SmartAir City is an IoT-based platform designed to monitor urban air quality met
 - Node.js 16.x or later
 - npm or yarn package manager
 
+For Docker deployment:
+- Docker 20.10+
+- Docker Compose 2.0+
+
 ## Installation
 
 ### Backend Setup
@@ -84,6 +88,8 @@ The API will be available at `http://localhost:5000` and Swagger UI at `http://l
 
 ### Frontend Setup
 
+#### Standard Development
+
 1. Navigate to the frontend directory:
 ```bash
 cd frontend
@@ -94,12 +100,44 @@ cd frontend
 npm install
 ```
 
-3. Start the development server:
+3. (Optional) Configure environment variables:
+```bash
+cp .env.example .env
+# Edit .env with your configuration
+```
+
+4. Start the development server:
 ```bash
 npm start
 ```
 
 The application will open at `http://localhost:3000`.
+
+#### Docker Deployment
+
+1. Navigate to the frontend directory:
+```bash
+cd frontend
+```
+
+2. Build and run with Docker Compose:
+```bash
+docker-compose up -d --build
+```
+
+The application will be available at `http://localhost:3000`.
+
+3. View logs:
+```bash
+docker-compose logs -f
+```
+
+4. Stop containers:
+```bash
+docker-compose down
+```
+
+For detailed Docker setup and troubleshooting, see [frontend/README.md](frontend/README.md).
 
 ## API Endpoints
 
@@ -179,6 +217,19 @@ Ensure MongoDB is running on your system. The default connection string points t
 ### OpenAQ API
 The system can optionally integrate with OpenAQ for additional air quality data. Register for a free API key at [openaq.org](https://openaq.org/) and add it to your configuration.
 
+### Frontend Environment Variables
+Create a `.env` file in the frontend directory based on `.env.example`:
+
+```env
+REACT_APP_API_BASE_URL=http://localhost:5000/api
+REACT_APP_API_TIMEOUT=10000
+REACT_APP_MAP_CENTER_LAT=21.0285
+REACT_APP_MAP_CENTER_LNG=105.8542
+REACT_APP_MAP_DEFAULT_ZOOM=12
+```
+
+**Important:** Never commit `.env` files to version control. Use `.env.example` as a template only.
+
 ## Usage
 
 1. Start MongoDB service
@@ -211,10 +262,36 @@ Backend:
 dotnet publish -c Release
 ```
 
-Frontend:
+Frontend (Standard):
 ```bash
 npm run build
 ```
+
+Frontend (Docker):
+```bash
+cd frontend
+docker-compose up -d --build
+```
+
+## Docker Deployment
+
+### Frontend with Docker
+
+The frontend includes production-ready Docker configuration with:
+- Multi-stage build (Node.js build + Nginx serve)
+- Optimized image size
+- Gzip compression
+- Security headers
+- Health check endpoint
+- React Router support
+
+Quick start:
+```bash
+cd frontend
+docker-compose up -d --build
+```
+
+For detailed instructions, see [frontend/README.md](frontend/README.md).
 
 ## Contributing
 
