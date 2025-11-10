@@ -120,7 +120,7 @@ function App() {
         return (
           <>
             <div className="page-header">
-              <h2>🗺️ Bản đồ - Trạm đo chất lượng không khí</h2>
+              <h2>Bản đồ - Trạm đo chất lượng không khí</h2>
               <p className="page-subtitle">
                 Nhấp vào các điểm đo trên bản đồ để xem thông tin chi tiết
               </p>
@@ -224,10 +224,10 @@ function App() {
     const result = downloadCSV(stations);
     if (result.success) {
       console.log('CSV exported successfully:', result.filename);
-      alert(`✅ Đã xuất file CSV: ${result.filename}`);
+      alert(`Đã xuất file CSV: ${result.filename}`);
     } else {
       console.error('CSV export failed:', result.error);
-      alert(`❌ Lỗi xuất CSV: ${result.error}`);
+      alert(`Lỗi xuất CSV: ${result.error}`);
     }
   };
 
@@ -235,10 +235,10 @@ function App() {
     const result = downloadJSON(stations, true);
     if (result.success) {
       console.log('JSON exported successfully:', result.filename);
-      alert(`✅ Đã xuất file JSON: ${result.filename}`);
+      alert(`Đã xuất file JSON: ${result.filename}`);
     } else {
       console.error('JSON export failed:', result.error);
-      alert(`❌ Lỗi xuất JSON: ${result.error}`);
+      alert(`Lỗi xuất JSON: ${result.error}`);
     }
   };
 
@@ -285,7 +285,6 @@ function App() {
             {/* Auto-refresh control panel */}
             <div className="refresh-panel">
               <div className="refresh-info">
-                <span className="refresh-icon">{autoRefresh ? '🔄' : '⏸️'}</span>
                 <span className="refresh-text">
                   {autoRefresh ? 'Tự động cập nhật: Bật' : 'Tự động cập nhật: Tắt'}
                 </span>
@@ -300,14 +299,14 @@ function App() {
                   onClick={handleExportCSV}
                   title="Xuất dữ liệu CSV"
                 >
-                  📊 CSV
+                  CSV
                 </button>
                 <button 
                   className="refresh-btn export-btn" 
                   onClick={handleExportJSON}
                   title="Xuất dữ liệu JSON"
                 >
-                  📄 JSON
+                  JSON
                 </button>
                 <button 
                   className="refresh-btn toggle-btn" 

@@ -99,7 +99,7 @@ const APIDataViewer = ({ stations }) => {
   return (
     <div className="api-data-viewer">
       <div className="api-header">
-        <h2>📡 API Data - NGSI-LD Format</h2>
+        <h2>API Data - NGSI-LD Format</h2>
         <p className="api-description">
           Dữ liệu từ các trạm giám sát được chuẩn hóa theo NGSI-LD Context
           Information Management, tương thích với nền tảng FIWARE cho thành phố
@@ -137,7 +137,7 @@ const APIDataViewer = ({ stations }) => {
                 className={`view-toggle ${viewMode === "raw" ? "active" : ""}`}
                 onClick={() => setViewMode("raw")}
               >
-                📊 Raw Data
+                Raw Data
               </button>
               <button
                 className={`view-toggle ${
@@ -145,7 +145,7 @@ const APIDataViewer = ({ stations }) => {
                 }`}
                 onClick={() => setViewMode("ngsi-ld")}
               >
-                🔗 NGSI-LD
+                NGSI-LD
               </button>
               <button className="copy-button" onClick={copyToClipboard}>
                 📋 Copy
@@ -233,17 +233,17 @@ const APIDataViewer = ({ stations }) => {
             )}
 
             <div className="api-info">
-              <h4>📘 About NGSI-LD</h4>
+              <h4>About NGSI-LD</h4>
               <p>
                 <strong>NGSI-LD</strong> is a standardized API for context
                 information management in IoT and smart city systems. Developed
                 by ETSI and widely used in the FIWARE platform.
               </p>
               <ul>
-                <li>✅ Standardized interaction between systems</li>
-                <li>✅ Support for Linked Data and Semantic Web</li>
-                <li>✅ Real-time data management</li>
-                <li>✅ Integration with Context Broker (Orion-LD)</li>
+                <li>Standardized interaction between systems</li>
+                <li>Support for Linked Data and Semantic Web</li>
+                <li>Real-time data management</li>
+                <li>Integration with Context Broker (Orion-LD)</li>
               </ul>
             </div>
           </div>
