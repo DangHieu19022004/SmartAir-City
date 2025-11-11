@@ -1,27 +1,9 @@
+# .NET
 bin/
 obj/
-out/
-TestResults/
 
-# IDE
-.vs/
-.vscode/
-
-# User secrets & local configs
-appsettings.*.local.json
-secrets.json
+# Node
+node_modules/
 .env
 
-# Logs
-*.log
-
-# OS junk
-.DS_Store
-Thumbs.db
-
-# Misc
-*.user
-*.swp
-*.suo
-*.userosscache
-*.sln.docstates
+backend/
