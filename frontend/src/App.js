@@ -15,6 +15,7 @@ import Footer from './components/Footer';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorMessage from './components/ErrorMessage';
 import SearchFilter from './components/SearchFilter';
+import ApiTestComponent from './components/ApiTestComponent';
 import { generateMockStations, generateHistoricalData, updateStationData } from './data/mockData';
 import { downloadCSV, downloadJSON } from './utils/exportUtils';
 
@@ -144,6 +145,9 @@ function App() {
       
       case 'about':
         return <About />;
+      
+      case 'apitest':
+        return <ApiTestComponent />;
       
       default:
         return (

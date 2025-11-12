@@ -35,9 +35,34 @@ export {
 } from './config/wsConfig';
 
 // ============================================
-// API SERVICES (Will be added in Phase 2-4)
+// API SERVICES
 // ============================================
-// export { default as axiosInstance } from './api/axiosInstance';
+export { default as axiosInstances } from './api/axiosInstance';
+export { default as errorHandler } from './api/errorHandler';
+
+export {
+  airQualityAxios,
+  coreApiAxios,
+  get,
+  post,
+  put,
+  del,
+} from './api/axiosInstance';
+
+export {
+  ERROR_TYPES,
+  ERROR_MESSAGES,
+  normalizeError,
+  logError,
+  handleApiError,
+  isNetworkError,
+  isTimeoutError,
+  isServerError,
+  isUnauthorized,
+  isNotFound,
+} from './api/errorHandler';
+
+// Will be added in Phase 3-4:
 // export { default as airQualityService } from './api/airQualityService';
 // export { default as devicesService } from './api/devicesService';
 // export { default as usersService } from './api/usersService';

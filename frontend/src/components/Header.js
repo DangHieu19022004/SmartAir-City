@@ -41,6 +41,14 @@ const Header = ({ activeTab, setActiveTab }) => {
           >
             Giới thiệu
           </button>
+          <button 
+            className={`nav-item ${activeTab === 'apitest' ? 'active' : ''}`}
+            onClick={() => setActiveTab('apitest')}
+            style={{ backgroundColor: '#ff9800', color: 'white' }}
+            title="Phase 2 - API Testing"
+          >
+            🧪 API Test
+          </button>
         </nav>
       </div>
     </header>

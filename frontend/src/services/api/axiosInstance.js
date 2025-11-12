@@ -1,0 +1,185 @@
+// © 2025 SmartAir City Team
+// Licensed under the MIT License. See LICENSE file for details.
+
+/**
+ * Axios Instance
+ * Central HTTP client với interceptors
+ * 
+ * Features:
+ * - Request/Response logging
+ * - Error handling
+ * - Timeout management
+ * - Headers management
+ */
+
+import axios from 'axios';
+import { API_CONFIG, logApiRequest, logApiResponse } from '../config/apiConfig';
+import { normalizeError, logError } from './errorHandler';
+
+// ============================================
+// CREATE AXIOS INSTANCES
+// ============================================
+
+/**
+ * Air Quality API Instance (Port 5182)
+ */
+export const airQualityAxios = axios.create({
+  baseURL: process.env.REACT_APP_AIR_API_URL || 'http://localhost:5182',
+  timeout: API_CONFIG.TIMEOUT,
+  headers: API_CONFIG.DEFAULT_HEADERS,
+});
+
+/**
+ * Core API Instance - Devices & Users (Port 5183)
+ */
+export const coreApiAxios = axios.create({
+  baseURL: process.env.REACT_APP_CORE_API_URL || 'http://localhost:5183',
+  timeout: API_CONFIG.TIMEOUT,
+  headers: API_CONFIG.DEFAULT_HEADERS,
+});
+
+// ============================================
+// REQUEST INTERCEPTOR
+// ============================================
+
+const requestInterceptor = (config) => {
+  // Log request (chỉ trong development)
+  logApiRequest(config.method?.toUpperCase(), config.url, config.data);
+
+  // Add timestamp to request
+  config.metadata = { startTime: new Date() };
+
+  // TODO: Add authentication token khi implement auth
+  // const token = localStorage.getItem('authToken');
+  // if (token) {
+  //   config.headers.Authorization = `Bearer ${token}`;
+  // }
+
+  return config;
+};
+
+const requestErrorInterceptor = (error) => {
+  logError(normalizeError(error), 'Request Error');
+  return Promise.reject(error);
+};
+
+// ============================================
+// RESPONSE INTERCEPTOR
+// ============================================
+
+const responseInterceptor = (response) => {
+  // Calculate response time
+  const endTime = new Date();
+  const startTime = response.config.metadata?.startTime;
+  const duration = startTime ? endTime - startTime : 0;
+
+  // Log response (chỉ trong development)
+  if (API_CONFIG.DEBUG_MODE) {
+    logApiResponse(response.config.url, response.data);
+    console.log(`⏱️  Response time: ${duration}ms`);
+  }
+
+  // Return data directly (unwrap response.data)
+  return response.data;
+};
+
+const responseErrorInterceptor = (error) => {
+  // Normalize error
+  const normalizedError = normalizeError(error);
+  
+  // Log error
+  const context = error.config?.url 
+    ? `${error.config.method?.toUpperCase()} ${error.config.url}`
+    : 'Unknown endpoint';
+  logError(normalizedError, context);
+
+  // Reject với normalized error
+  return Promise.reject(normalizedError);
+};
+
+// ============================================
+// APPLY INTERCEPTORS
+// ============================================
+
+// Air Quality API interceptors
+airQualityAxios.interceptors.request.use(
+  requestInterceptor,
+  requestErrorInterceptor
+);
+
+airQualityAxios.interceptors.response.use(
+  responseInterceptor,
+  responseErrorInterceptor
+);
+
+// Core API interceptors
+coreApiAxios.interceptors.request.use(
+  requestInterceptor,
+  requestErrorInterceptor
+);
+
+coreApiAxios.interceptors.response.use(
+  responseInterceptor,
+  responseErrorInterceptor
+);
+
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+/**
+ * GET request helper
+ * @param {object} axiosInstance - Axios instance to use
+ * @param {string} url - Request URL
+ * @param {object} config - Axios config
+ */
+export const get = (axiosInstance, url, config = {}) => {
+  return axiosInstance.get(url, config);
+};
+
+/**
+ * POST request helper
+ * @param {object} axiosInstance - Axios instance to use
+ * @param {string} url - Request URL
+ * @param {object} data - Request body
+ * @param {object} config - Axios config
+ */
+export const post = (axiosInstance, url, data, config = {}) => {
+  return axiosInstance.post(url, data, config);
+};
+
+/**
+ * PUT request helper
+ * @param {object} axiosInstance - Axios instance to use
+ * @param {string} url - Request URL
+ * @param {object} data - Request body
+ * @param {object} config - Axios config
+ */
+export const put = (axiosInstance, url, data, config = {}) => {
+  return axiosInstance.put(url, data, config);
+};
+
+/**
+ * DELETE request helper
+ * @param {object} axiosInstance - Axios instance to use
+ * @param {string} url - Request URL
+ * @param {object} config - Axios config
+ */
+export const del = (axiosInstance, url, config = {}) => {
+  return axiosInstance.delete(url, config);
+};
+
+// ============================================
+// DEFAULT EXPORT
+// ============================================
+
+const axiosInstances = {
+  airQualityAxios,
+  coreApiAxios,
+  get,
+  post,
+  put,
+  del,
+};
+
+export default axiosInstances;
