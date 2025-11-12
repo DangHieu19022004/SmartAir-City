@@ -9,7 +9,7 @@ import AirQualityChart from './components/AirQualityChart'; // Updated to use ho
 import StationComparisonChart from './components/StationComparisonChart'; // Updated to use hooks
 import AirQualityMap from './components/AirQualityMap';
 import AlertBanner from './components/AlertBanner';
-// import APIDataViewer from './components/APIDataViewer'; // Cần update để dùng hooks
+import APIDataViewer from './components/APIDataViewer'; // Updated to use hooks
 import About from './components/About';
 import Footer from './components/Footer';
 import LoadingSpinner from './components/LoadingSpinner';
@@ -107,16 +107,7 @@ function App() {
         );
       
       case 'data':
-        return (
-          <>
-            {/* APIDataViewer cần update để dùng hooks */}
-            {/* <APIDataViewer stations={stations} /> */}
-            <div className="page-header">
-              <h2>API Data Viewer - Đang cập nhật...</h2>
-              <p>Component này sẽ được cập nhật để sử dụng hooks</p>
-            </div>
-          </>
-        );
+        return <APIDataViewer />;
       
       case 'about':
         return <About />;

@@ -42,60 +42,16 @@ const Header = ({ activeTab, setActiveTab }) => {
             Giới thiệu
           </button>
           <button 
-            className={`nav-item ${activeTab === 'apitest' ? 'active' : ''}`}
-            onClick={() => setActiveTab('apitest')}
-            style={{ backgroundColor: '#ff9800', color: 'white' }}
-            title="Phase 2 - API Testing"
-          >
-            API Test
-          </button>
-          <button 
-            className={`nav-item ${activeTab === 'aqtest' ? 'active' : ''}`}
-            onClick={() => setActiveTab('aqtest')}
-            style={{ backgroundColor: '#4CAF50', color: 'white' }}
-            title="Phase 3 - Air Quality Service Testing"
-          >
-            AQ Service
-          </button>
-          <button 
-            className={`nav-item ${activeTab === 'dutest' ? 'active' : ''}`}
-            onClick={() => setActiveTab('dutest')}
-            style={{ backgroundColor: '#9C27B0', color: 'white' }}
-            title="Phase 4 - Devices & Users Service Testing"
-          >
-            👥 D&U Service
-          </button>
-          <button 
-            className={`nav-item ${activeTab === 'wstest' ? 'active' : ''}`}
-            onClick={() => setActiveTab('wstest')}
-            style={{ backgroundColor: '#00BCD4', color: 'white' }}
-            title="Phase 5 - WebSocket Testing"
-          >
-            🌐 WebSocket
-          </button>
-          <button 
-            className={`nav-item ${activeTab === 'phase6' ? 'active' : ''}`}
-            onClick={() => setActiveTab('phase6')}
-            style={{ backgroundColor: '#E91E63', color: 'white' }}
-            title="Phase 6 - React Hooks Integration Testing"
-          >
-            🎣 Phase 6
-          </button>
-          <button 
             className={`nav-item ${activeTab === 'devices' ? 'active' : ''}`}
             onClick={() => setActiveTab('devices')}
-            style={{ backgroundColor: '#3F51B5', color: 'white' }}
-            title="Phase 8 - Device Management UI"
           >
-            📡 Devices
+            � Thiết bị
           </button>
           <button 
             className={`nav-item ${activeTab === 'users' ? 'active' : ''}`}
             onClick={() => setActiveTab('users')}
-            style={{ backgroundColor: '#E91E63', color: 'white' }}
-            title="Phase 9 - User Management UI"
           >
-            👥 Users
+            👥 Người dùng
           </button>
         </nav>
       </div>
