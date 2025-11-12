@@ -243,7 +243,11 @@ const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
                 disabled={isLoading}
                 title={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
               >
-                {showPassword ? '�' : '👁️'}
+                {showPassword ? (
+                  <span className="eye-slash">👁</span>
+                ) : (
+                  <span>👁</span>
+                )}
               </button>
             </div>
             {errors.password && (
@@ -274,7 +278,11 @@ const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
                   disabled={isLoading}
                   title={showConfirmPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                 >
-                  {showConfirmPassword ? '�' : '👁️'}
+                  {showConfirmPassword ? (
+                    <span className="eye-slash">👁</span>
+                  ) : (
+                    <span>👁</span>
+                  )}
                 </button>
               </div>
               {errors.confirmPassword && (

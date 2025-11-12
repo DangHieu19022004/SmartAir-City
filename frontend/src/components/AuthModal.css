@@ -183,6 +183,23 @@
   opacity: 0.3;
 }
 
+/* Eye Slash Effect */
+.eye-slash {
+  position: relative;
+  display: inline-block;
+}
+
+.eye-slash::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -2px;
+  right: -2px;
+  height: 2px;
+  background: currentColor;
+  transform: translateY(-50%) rotate(-45deg);
+}
+
 .form-group input:focus {
   border-color: #2196F3;
   box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
