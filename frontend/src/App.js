@@ -14,27 +14,33 @@ import About from './components/About';
 import Footer from './components/Footer';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorMessage from './components/ErrorMessage';
-// import SearchFilter from './components/SearchFilter'; // TODO: Update to use hooks
-import ApiTestComponent from './components/ApiTestComponent';
-import AirQualityServiceTest from './components/AirQualityServiceTest';
-import DevicesUsersServiceTest from './components/DevicesUsersServiceTest';
-import WebSocketTest from './components/WebSocketTest';
-import Phase6Test from './components/Phase6Test';
+import AuthModal from './components/AuthModal'; // New
 import DeviceManagement from './components/DeviceManagement'; // Phase 8
 import UserManagement from './components/UserManagement'; // Phase 9
+import { getUser, removeToken } from './services/api/usersService'; // Auth helpers
+// import SearchFilter from './components/SearchFilter'; // TODO: Update to use hooks
 // No longer using mockData.js - all data from MSW + Hooks
 // import { downloadCSV, downloadJSON } from './utils/exportUtils'; // Tạm disabled - cần update với hooks
 
 function App() {
   const [activeTab, setActiveTab] = useState('home');
-  // const [stations, setStations] = useState([]); // Không dùng mockData nữa
-  // const [filteredStations, setFilteredStations] = useState([]); // Không dùng mockData nữa
-  // const [historicalData, setHistoricalData] = useState([]); // Không dùng mockData nữa
   const [lastUpdate, setLastUpdate] = useState(new Date());
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
+  
+  // Auth state
+  const [user, setUser] = useState(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
+  // Load user from localStorage on mount
+  useEffect(() => {
+    const savedUser = getUser();
+    if (savedUser) {
+      setUser(savedUser);
+    }
+  }, []);
 
   // Load dark mode preference from localStorage
   useEffect(() => {
@@ -53,6 +59,22 @@ function App() {
   useEffect(() => {
     setLoading(false);
   }, []);
+
+  // Auth handlers
+  const handleLoginClick = () => {
+    setShowAuthModal(true);
+  };
+
+  const handleLoginSuccess = (userData) => {
+    setUser(userData);
+    setShowAuthModal(false);
+  };
+
+  const handleLogout = () => {
+    removeToken();
+    setUser(null);
+    setActiveTab('home');
+  };
 
   // Handle station click on map
   const handleStationClick = (station) => {
@@ -112,25 +134,34 @@ function App() {
       case 'about':
         return <About />;
       
-      case 'apitest':
-        return <ApiTestComponent />;
-      
-      case 'aqtest':
-        return <AirQualityServiceTest />;
-      
-      case 'dutest':
-        return <DevicesUsersServiceTest />;
-      
-      case 'wstest':
-        return <WebSocketTest />;
-      
-      case 'phase6':
-        return <Phase6Test />;
-      
       case 'devices':
+        // Only show if user is admin
+        if (!user || user.role !== 'admin') {
+          return (
+            <div className="access-denied">
+              <h2>🔒 Truy cập bị từ chối</h2>
+              <p>Bạn cần đăng nhập với quyền Admin để truy cập trang này.</p>
+              <button className="btn-back" onClick={() => setActiveTab('home')}>
+                ← Quay lại trang chủ
+              </button>
+            </div>
+          );
+        }
         return <DeviceManagement />;
       
       case 'users':
+        // Only show if user is admin
+        if (!user || user.role !== 'admin') {
+          return (
+            <div className="access-denied">
+              <h2>🔒 Truy cập bị từ chối</h2>
+              <p>Bạn cần đăng nhập với quyền Admin để truy cập trang này.</p>
+              <button className="btn-back" onClick={() => setActiveTab('home')}>
+                ← Quay lại trang chủ
+              </button>
+            </div>
+          );
+        }
         return <UserManagement />;
       
       default:
@@ -203,7 +234,20 @@ function App() {
 
   return (
     <div className="App">
-      <Header activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Header 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab}
+        user={user}
+        onLoginClick={handleLoginClick}
+        onLogout={handleLogout}
+      />
+      
+      {/* Auth Modal */}
+      <AuthModal 
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onLoginSuccess={handleLoginSuccess}
+      />
       
       {/* Dark Mode Toggle Button */}
       <button 

@@ -1,10 +1,30 @@
 // © 2025 SmartAir City Team
 // Licensed under the MIT License. See LICENSE file for details.
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './Header.css';
 
-const Header = ({ activeTab, setActiveTab }) => {
+const Header = ({ activeTab, setActiveTab, user, onLoginClick, onLogout }) => {
+  const [showAdminMenu, setShowAdminMenu] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowAdminMenu(false);
+      }
+    };
+
+    if (showAdminMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showAdminMenu]);
+
   return (
     <header className="header">
       <div className="header-container">
@@ -41,18 +61,64 @@ const Header = ({ activeTab, setActiveTab }) => {
           >
             Giới thiệu
           </button>
-          <button 
-            className={`nav-item ${activeTab === 'devices' ? 'active' : ''}`}
-            onClick={() => setActiveTab('devices')}
-          >
-            � Thiết bị
-          </button>
-          <button 
-            className={`nav-item ${activeTab === 'users' ? 'active' : ''}`}
-            onClick={() => setActiveTab('users')}
-          >
-            👥 Người dùng
-          </button>
+
+          {/* Auth Section */}
+          <div className="auth-section">
+            {user ? (
+              <>
+                <div className="user-dropdown" ref={dropdownRef}>
+                  <div 
+                    className="user-info"
+                    onClick={() => setShowAdminMenu(!showAdminMenu)}
+                  >
+                    <span className="user-avatar">
+                      {user.username?.charAt(0).toUpperCase() || '👤'}
+                    </span>
+                    <span className="user-name">{user.username}</span>
+                    {user.role === 'admin' && (
+                      <span className="admin-badge">Admin</span>
+                    )}
+                    <span className="dropdown-arrow">{showAdminMenu ? '▲' : '▼'}</span>
+                  </div>
+
+                  {/* Admin Dropdown Menu */}
+                  {showAdminMenu && user.role === 'admin' && (
+                    <div className="admin-dropdown-menu">
+                      <div className="dropdown-header">
+                        🔧 Quản lý hệ thống
+                      </div>
+                      <button
+                        className="dropdown-item"
+                        onClick={() => {
+                          setActiveTab('devices');
+                          setShowAdminMenu(false);
+                        }}
+                      >
+                        📡 Quản lý thiết bị
+                      </button>
+                      <button
+                        className="dropdown-item"
+                        onClick={() => {
+                          setActiveTab('users');
+                          setShowAdminMenu(false);
+                        }}
+                      >
+                        👥 Quản lý người dùng
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <button className="btn-logout" onClick={onLogout}>
+                  🚪 Đăng xuất
+                </button>
+              </>
+            ) : (
+              <button className="btn-login" onClick={onLoginClick}>
+                🔐 Đăng nhập
+              </button>
+            )}
+          </div>
         </nav>
       </div>
     </header>

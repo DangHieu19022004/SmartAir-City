@@ -175,9 +175,11 @@ export const signup = async (userData) => {
   }
   
   return {
+    success: response.success !== false, // Pass through success from MSW
     user: transformUser(response.user),
     token: response.token,
     message: response.message,
+    error: response.error,
   };
 };
 
@@ -201,9 +203,11 @@ export const login = async (credentials) => {
   }
   
   return {
+    success: response.success !== false, // Pass through success from MSW
     user: transformUser(response.user),
     token: response.token,
     message: response.message,
+    error: response.error,
   };
 };
 

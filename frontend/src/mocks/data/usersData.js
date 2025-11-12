@@ -65,18 +65,78 @@ export const MOCK_USERS = [
   {
     id: 'admin-001',
     role: 'admin',
-    pw: 'hashed_password',
-    mail: 'admin@smartaircity.com',
+    pw: 'password123', // For testing
+    mail: 'admin@test.com',
+    email: 'admin@test.com',
     name: 'Admin User',
+    username: 'admin',
+    fullName: 'Admin User',
+    isEmailVerified: true,
+    avatar: null,
+    createdAt: new Date('2024-01-01').toISOString(),
+    updatedAt: new Date().toISOString(),
+    lastLogin: new Date().toISOString(),
   },
   {
     id: 'user-001',
     role: 'user',
-    pw: 'hashed_password',
-    mail: 'user@smartaircity.com',
+    pw: 'password123', // For testing
+    mail: 'user@test.com',
+    email: 'user@test.com',
     name: 'Regular User',
+    username: 'user',
+    fullName: 'Regular User',
+    isEmailVerified: true,
+    avatar: null,
+    createdAt: new Date('2024-01-01').toISOString(),
+    updatedAt: new Date().toISOString(),
+    lastLogin: new Date().toISOString(),
   },
-  ...generateUsers(3)
+  {
+    id: 'user-002',
+    role: 'user',
+    pw: 'password123',
+    mail: 'john@test.com',
+    email: 'john@test.com',
+    name: 'John Doe',
+    username: 'john',
+    fullName: 'John Doe',
+    isEmailVerified: true,
+    avatar: null,
+    createdAt: new Date('2024-01-01').toISOString(),
+    updatedAt: new Date().toISOString(),
+    lastLogin: new Date().toISOString(),
+  },
+  {
+    id: 'user-003',
+    role: 'user',
+    pw: 'password123',
+    mail: 'jane@test.com',
+    email: 'jane@test.com',
+    name: 'Jane Smith',
+    username: 'jane',
+    fullName: 'Jane Smith',
+    isEmailVerified: true,
+    avatar: null,
+    createdAt: new Date('2024-01-01').toISOString(),
+    updatedAt: new Date().toISOString(),
+    lastLogin: new Date().toISOString(),
+  },
+  {
+    id: 'user-004',
+    role: 'user',
+    pw: 'password123',
+    mail: 'bob@test.com',
+    email: 'bob@test.com',
+    name: 'Bob Johnson',
+    username: 'bob',
+    fullName: 'Bob Johnson',
+    isEmailVerified: true,
+    avatar: null,
+    createdAt: new Date('2024-01-01').toISOString(),
+    updatedAt: new Date().toISOString(),
+    lastLogin: new Date().toISOString(),
+  },
 ];
 
 // ============================================
@@ -84,30 +144,50 @@ export const MOCK_USERS = [
 // ============================================
 
 /**
- * Mock login - Always return success for testing
+ * Mock login - Check email and password
  * @param {string} email - Email
  * @param {string} password - Password
  * @returns {object} Login result
  */
 export const mockLogin = (email, password) => {
-  const user = MOCK_USERS.find(u => u.mail === email);
+  console.log('[mockLogin] Attempting login:', email);
   
-  if (user) {
+  const user = MOCK_USERS.find(u => u.email === email || u.mail === email);
+  
+  if (!user) {
+    console.log('[mockLogin] User not found:', email);
     return {
-      success: true,
-      token: 'mock-jwt-token-' + Date.now(),
-      user: {
-        id: user.id,
-        name: user.name,
-        mail: user.mail,
-        role: user.role,
-      }
+      success: false,
+      error: 'Email hoặc mật khẩu không đúng'
     };
   }
   
+  // Check password
+  if (user.pw !== password) {
+    console.log('[mockLogin] Invalid password');
+    return {
+      success: false,
+      error: 'Email hoặc mật khẩu không đúng'
+    };
+  }
+  
+  console.log('[mockLogin] Login successful:', user);
+  
   return {
-    success: false,
-    error: 'Invalid email or password'
+    success: true,
+    token: 'mock-jwt-token-' + Date.now(),
+    user: {
+      id: user.id,
+      email: user.email || user.mail,
+      username: user.username || user.name,
+      fullName: user.fullName || user.name,
+      role: user.role,
+      isEmailVerified: user.isEmailVerified || false,
+      avatar: user.avatar || null,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      lastLogin: new Date().toISOString(),
+    }
   };
 };
 
@@ -115,29 +195,55 @@ export const mockLogin = (email, password) => {
  * Mock signup
  * @param {string} email - Email
  * @param {string} password - Password
+ * @param {string} username - Username (optional)
  * @returns {object} Signup result
  */
-export const mockSignup = (email, password) => {
-  const exists = MOCK_USERS.find(u => u.mail === email);
+export const mockSignup = (email, password, username = null) => {
+  console.log('[mockSignup] Attempting signup:', email);
+  
+  const exists = MOCK_USERS.find(u => u.email === email || u.mail === email);
   
   if (exists) {
+    console.log('[mockSignup] Email already exists');
     return {
       success: false,
-      error: 'Email already exists'
+      error: 'Email đã được sử dụng'
     };
   }
   
-  const newUser = generateUser({ mail: email });
+  const newUser = {
+    id: `user-${Date.now()}`,
+    role: 'user',
+    pw: password,
+    mail: email,
+    email: email,
+    name: username || email.split('@')[0],
+    username: username || email.split('@')[0],
+    fullName: username || email.split('@')[0],
+    isEmailVerified: false,
+    avatar: null,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    lastLogin: new Date().toISOString(),
+  };
+  
   MOCK_USERS.push(newUser);
+  console.log('[mockSignup] Signup successful:', newUser);
   
   return {
     success: true,
     token: 'mock-jwt-token-' + Date.now(),
     user: {
       id: newUser.id,
-      name: newUser.name,
-      mail: newUser.mail,
+      email: newUser.email,
+      username: newUser.username,
+      fullName: newUser.fullName,
       role: newUser.role,
+      isEmailVerified: newUser.isEmailVerified,
+      avatar: newUser.avatar,
+      createdAt: newUser.createdAt,
+      updatedAt: newUser.updatedAt,
+      lastLogin: newUser.lastLogin,
     }
   };
 };

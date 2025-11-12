@@ -34,7 +34,7 @@ export const usersHandlers = [
     console.log('[MSW] POST /api/Users/singup');
     
     const body = await request.json();
-    const { email, password } = body;
+    const { email, password, username } = body;
     
     if (!email || !password) {
       return HttpResponse.json(
@@ -43,7 +43,7 @@ export const usersHandlers = [
       );
     }
     
-    const result = mockSignup(email, password);
+    const result = mockSignup(email, password, username);
     
     if (!result.success) {
       return HttpResponse.json(
