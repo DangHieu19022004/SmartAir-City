@@ -5,9 +5,11 @@ import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { getAQIColor, getAQILevel } from '../data/mockData';
 import { useAirQuality } from '../hooks';
+import { airQualityService } from '../services';
 import './AirQualityMap.css';
+
+const { getAQIColor, getAQILevel } = airQualityService;
 
 // Fix Leaflet default icon issue with React
 delete L.Icon.Default.prototype._getIconUrl;
@@ -138,7 +140,7 @@ const AirQualityMap = ({ stations: stationsProp, onStationClick }) => {
                 <div className="aqi-badge" style={{ backgroundColor: getAQIColor(station.aqi) }}>
                   AQI: {Math.round(station.aqi)}
                 </div>
-                <p className="aqi-level">{getAQILevel(station.aqi)}</p>
+                <p className="aqi-level">{getAQILevel(station.aqi).label}</p>
                 <div className="popup-details">
                   <p><strong>PM2.5:</strong> {station.pm25} µg/m³</p>
                   <p><strong>PM10:</strong> {station.pm10} µg/m³</p>

@@ -14,13 +14,13 @@ import About from './components/About';
 import Footer from './components/Footer';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorMessage from './components/ErrorMessage';
-// import SearchFilter from './components/SearchFilter'; // Tạm comment - dùng mockData
+// import SearchFilter from './components/SearchFilter'; // TODO: Update to use hooks
 import ApiTestComponent from './components/ApiTestComponent';
 import AirQualityServiceTest from './components/AirQualityServiceTest';
 import DevicesUsersServiceTest from './components/DevicesUsersServiceTest';
 import WebSocketTest from './components/WebSocketTest';
 import Phase6Test from './components/Phase6Test';
-// import { generateMockStations, generateHistoricalData, updateStationData } from './data/mockData'; // Không dùng nữa - chuyển sang MSW
+// No longer using mockData.js - all data from MSW + Hooks
 // import { downloadCSV, downloadJSON } from './utils/exportUtils'; // Tạm disabled - cần update với hooks
 
 function App() {

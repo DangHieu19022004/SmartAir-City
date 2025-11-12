@@ -271,6 +271,16 @@ export const getAlerts = async (params = {}) => {
 // ============================================
 
 /**
+ * Get AQI color based on level
+ * @param {number} aqi - Air Quality Index
+ * @returns {string} Hex color code
+ */
+export const getAQIColor = (aqi) => {
+  const { color } = getAQILevel(aqi);
+  return color;
+};
+
+/**
  * Get AQI level and color
  * @param {number} aqi - Air Quality Index
  * @returns {object} Level info with label and color
@@ -373,6 +383,7 @@ const airQualityService = {
   transformAirQualityArray,
   
   // Helpers
+  getAQIColor,
   getAQILevel,
   calculateAverageAQI,
   getDateRange,

@@ -70,6 +70,7 @@ export {
   postIotData,
   transformAirQualityData,
   transformAirQualityArray,
+  getAQIColor,
   getAQILevel,
   calculateAverageAQI,
   getDateRange,

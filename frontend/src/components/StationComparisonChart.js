@@ -12,9 +12,11 @@ import {
   Legend
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
-import { getAQIColor } from '../data/mockData';
 import { useAirQuality } from '../hooks';
+import { airQualityService } from '../services';
 import './StationComparisonChart.css';
+
+const { getAQIColor } = airQualityService;
 
 // Register Chart.js components
 ChartJS.register(
