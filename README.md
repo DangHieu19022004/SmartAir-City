@@ -32,12 +32,13 @@ $env:MQTT__Password = "<MQTT_PASSWORD>"
 $env:OpenAQ__ApiKey = "<YOUR_API_KEY>"
 ```
 
-````bash
+```bash
 # Linux/macOS
 export MQTT__BrokerHost="<MQTT_BROKER_IP>"
 export MQTT__Username="<MQTT_USERNAME>"
 export MQTT__Password="<MQTT_PASSWORD>"
 export MQTT__ApiKey="<YOUR_API_KEY>"
+```
 
 #### **Phương pháp 2: Chỉnh sửa appsettings.json**
 
@@ -60,6 +61,8 @@ Mở file `backend/SmartAirCity/appsettings.json` và điền thông tin vào c�
 }
 ```
 
+=
+
 ### 3. Lấy credentials
 
 **MQTT:** Liên hệ nhóm trưởng (Lê Văn Quang)
@@ -79,4 +82,7 @@ Truy cập Swagger: `http://localhost:5182/swagger`
 ## License
 
 This project is licensed under the MIT License.
-````
+
+```
+
+```
