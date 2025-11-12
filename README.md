@@ -61,11 +61,9 @@ Mở file `backend/SmartAirCity/appsettings.json` và điền thông tin vào c�
 }
 ```
 
-=
-
 ### 3. Lấy credentials
 
-**MQTT:** Liên hệ nhóm trưởng (Lê Văn Quang)
+**MQTT:** Liên hệ nhóm trưởng (Lê Văn Quang)  
 **OpenAQ API Key:** Đăng ký miễn phí tại https://openaq.org/developers
 
 ### 4. Chạy backend
@@ -82,7 +80,3 @@ Truy cập Swagger: `http://localhost:5182/swagger`
 ## License
 
 This project is licensed under the MIT License.
-
-```
-
-```
