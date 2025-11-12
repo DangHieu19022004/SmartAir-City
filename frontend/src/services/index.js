@@ -118,7 +118,7 @@ export {
 } from './api/usersService';
 
 // ============================================
-// WEBSOCKET SERVICES (Will be added in Phase 5)
+// WEBSOCKET SERVICES (Phase 5)
 // ============================================
-// export { default as WebSocketManager } from './websocket/WebSocketManager';
-// export { default as airQualityWS } from './websocket/airQualityWS';
+export { default as WebSocketManager } from './websocket/WebSocketManager';
+export { default as airQualityWebSocket } from './websocket/airQualityWebSocket';

@@ -18,6 +18,7 @@ import SearchFilter from './components/SearchFilter';
 import ApiTestComponent from './components/ApiTestComponent';
 import AirQualityServiceTest from './components/AirQualityServiceTest';
 import DevicesUsersServiceTest from './components/DevicesUsersServiceTest';
+import WebSocketTest from './components/WebSocketTest';
 import { generateMockStations, generateHistoricalData, updateStationData } from './data/mockData';
 import { downloadCSV, downloadJSON } from './utils/exportUtils';
 
@@ -156,6 +157,9 @@ function App() {
       
       case 'dutest':
         return <DevicesUsersServiceTest />;
+      
+      case 'wstest':
+        return <WebSocketTest />;
       
       default:
         return (

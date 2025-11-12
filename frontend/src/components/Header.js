@@ -65,6 +65,14 @@ const Header = ({ activeTab, setActiveTab }) => {
           >
             👥 D&U Service
           </button>
+          <button 
+            className={`nav-item ${activeTab === 'wstest' ? 'active' : ''}`}
+            onClick={() => setActiveTab('wstest')}
+            style={{ backgroundColor: '#00BCD4', color: 'white' }}
+            title="Phase 5 - WebSocket Testing"
+          >
+            🌐 WebSocket
+          </button>
         </nav>
       </div>
     </header>
