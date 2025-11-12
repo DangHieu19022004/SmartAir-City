@@ -81,6 +81,14 @@ const Header = ({ activeTab, setActiveTab }) => {
           >
             🎣 Phase 6
           </button>
+          <button 
+            className={`nav-item ${activeTab === 'devices' ? 'active' : ''}`}
+            onClick={() => setActiveTab('devices')}
+            style={{ backgroundColor: '#3F51B5', color: 'white' }}
+            title="Phase 8 - Device Management UI"
+          >
+            📡 Devices
+          </button>
         </nav>
       </div>
     </header>

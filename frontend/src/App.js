@@ -20,6 +20,7 @@ import AirQualityServiceTest from './components/AirQualityServiceTest';
 import DevicesUsersServiceTest from './components/DevicesUsersServiceTest';
 import WebSocketTest from './components/WebSocketTest';
 import Phase6Test from './components/Phase6Test';
+import DeviceManagement from './components/DeviceManagement'; // Phase 8
 // No longer using mockData.js - all data from MSW + Hooks
 // import { downloadCSV, downloadJSON } from './utils/exportUtils'; // Tạm disabled - cần update với hooks
 
@@ -133,6 +134,9 @@ function App() {
       
       case 'phase6':
         return <Phase6Test />;
+      
+      case 'devices':
+        return <DeviceManagement />;
       
       default:
         return (
