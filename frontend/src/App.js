@@ -63,14 +63,10 @@ function App() {
   };
 
   const handleLoginSuccess = (userData) => {
-    console.log('[App] handleLoginSuccess called with:', userData);
     setUser(userData);
     setShowAuthModal(false);
-    console.log('[App] User state updated, modal closed');
-    
     // If admin, switch to devices tab
     if (userData && userData.role === 'admin') {
-      console.log('[App] Admin user detected, switching to devices tab');
       setActiveTab('devices');
     }
   };
@@ -176,7 +172,6 @@ function App() {
   };
   // Retry loading - Now handled by hooks
   const handleRetry = () => {
-    console.log('Retry triggered - hooks will reload data');
     setError(null);
     setLoading(false);
   };

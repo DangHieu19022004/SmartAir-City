@@ -13,23 +13,10 @@ const AlertBanner = ({ stations: stationsProp }) => {
 
   // ALWAYS use latestData from context (ignore prop)
   const stations = useMemo(() => latestData, [latestData]);
-
-  console.log('🚨 [AlertBanner] Render:', {
-    stationsProp: stationsProp?.length || 0,
-    latestData: latestData?.length || 0,
-    stations: stations?.length || 0,
-    alerts: alerts?.length || 0,
-    isConnected,
-    firstStation: stations[0],
-    sampleAQI: stations[0]?.aqi,
-    sampleTimestamp: stations[0]?.dateObserved
-  });
-
   // Update recent alerts from hook
   useEffect(() => {
     if (alerts && alerts.length > 0) {
       setRecentAlerts(alerts.slice(0, 3)); // Keep only 3 most recent alerts
-      console.log('🚨 New alerts received:', alerts.length);
     }
   }, [alerts]);
   // Check if there are any stations with dangerous AQI levels
