@@ -4,6 +4,7 @@ import UserList from './UserList';
 import UserForm from './UserForm';
 import LoadingSpinner from './LoadingSpinner';
 import ErrorMessage from './ErrorMessage';
+import EmailModal from './EmailModal';
 import './UserManagement.css';
 
 /**
@@ -19,6 +20,8 @@ const UserManagement = () => {
   const [editingUser, setEditingUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('all'); // all, admin, user
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailRecipient, setEmailRecipient] = useState(null);
 
   /**
    * Fetch all users
@@ -65,21 +68,20 @@ const UserManagement = () => {
     regularUsers: users.filter(u => u.role?.toLowerCase() === 'user').length,
     active: users.filter(u => u.isActive).length
   };
-
   /**
-   * Handle Add User
+   * Handle Send Email to User
    */
-  const handleAddUser = () => {
-    setEditingUser(null);
-    setIsFormOpen(true);
+  const handleSendEmail = (user) => {
+    setEmailRecipient(user);
+    setShowEmailModal(true);
   };
 
   /**
-   * Handle Edit User
+   * Handle Send Bulk Email
    */
-  const handleEditUser = (user) => {
-    setEditingUser(user);
-    setIsFormOpen(true);
+  const handleBulkEmail = () => {
+    setEmailRecipient(null); // null means bulk email
+    setShowEmailModal(true);
   };
 
   /**
@@ -166,19 +168,12 @@ const UserManagement = () => {
         </div>
         <div className="header-actions">
           <button 
-            className="btn btn-refresh" 
-            onClick={handleRefresh}
-            disabled={isLoading}
-            title="Làm mới dữ liệu"
-          >
-            🔄 Làm mới
-          </button>
-          <button 
             className="btn btn-primary" 
-            onClick={handleAddUser}
-            disabled={isLoading}
+            onClick={handleBulkEmail}
+            disabled={isLoading || users.length === 0}
+            title="Gửi email hàng loạt cho tất cả người dùng"
           >
-            ➕ Thêm người dùng
+            📧 Gửi email hàng loạt
           </button>
         </div>
       </div>
@@ -263,7 +258,7 @@ const UserManagement = () => {
       {!isLoading && !error && (
         <UserList
           users={filteredUsers}
-          onEdit={handleEditUser}
+          onSendEmail={handleSendEmail}
           onDelete={handleDeleteUser}
         />
       )}
@@ -281,6 +276,14 @@ const UserManagement = () => {
           </div>
         </div>
       )}
+
+      {/* Email Modal */}
+      <EmailModal
+        isOpen={showEmailModal}
+        onClose={() => setShowEmailModal(false)}
+        recipient={emailRecipient}
+        users={emailRecipient ? [emailRecipient] : users}
+      />
     </div>
   );
 };

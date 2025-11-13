@@ -23,8 +23,6 @@ import { AirQualityProvider } from './contexts/AirQualityContext';
 
 function App() {
   const [activeTab, setActiveTab] = useState('home');
-  const [lastUpdate, setLastUpdate] = useState(new Date());
-  const [autoRefresh, setAutoRefresh] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
@@ -65,8 +63,16 @@ function App() {
   };
 
   const handleLoginSuccess = (userData) => {
+    console.log('[App] handleLoginSuccess called with:', userData);
     setUser(userData);
     setShowAuthModal(false);
+    console.log('[App] User state updated, modal closed');
+    
+    // If admin, switch to devices tab
+    if (userData && userData.role === 'admin') {
+      console.log('[App] Admin user detected, switching to devices tab');
+      setActiveTab('devices');
+    }
   };
 
   const handleLogout = () => {
@@ -168,27 +174,12 @@ function App() {
         );
     }
   };
-
-  // Manual refresh function - Now handled by hooks
-  const handleManualRefresh = () => {
-    console.log('Manual refresh triggered - hooks will auto-refresh');
-    setLastUpdate(new Date());
-    setError(null);
-  };
-
   // Retry loading - Now handled by hooks
   const handleRetry = () => {
     console.log('Retry triggered - hooks will reload data');
     setError(null);
     setLoading(false);
   };
-
-  // Toggle auto-refresh
-  const toggleAutoRefresh = () => {
-    setAutoRefresh(prev => !prev);
-    console.log('Auto-refresh toggled:', !autoRefresh);
-  };
-
   // Toggle dark mode
   const toggleDarkMode = () => {
     setDarkMode(prev => {
@@ -203,28 +194,6 @@ function App() {
       
       console.log('Dark mode toggled:', newMode);
       return newMode;
-    });
-  };
-
-  // Export data handlers - Tạm thời disabled, cần update để dùng hooks
-  const handleExportCSV = () => {
-    console.log('Export CSV - Feature disabled, needs hook integration');
-    alert('Tính năng xuất CSV sẽ sớm được cập nhật với hooks');
-    // const result = downloadCSV(stations);
-  };
-
-  const handleExportJSON = () => {
-    console.log('Export JSON - Feature disabled, needs hook integration');
-    alert('Tính năng xuất JSON sẽ sớm được cập nhật với hooks');
-    // const result = downloadJSON(stations, true);
-  };
-
-  // Format last update time
-  const formatUpdateTime = () => {
-    return lastUpdate.toLocaleTimeString('vi-VN', { 
-      hour: '2-digit', 
-      minute: '2-digit', 
-      second: '2-digit' 
     });
   };
 
@@ -273,48 +242,7 @@ function App() {
           ) : (
             /* Show normal content */
             <>
-              {/* Auto-refresh control panel */}
-              <div className="refresh-panel">
-                <div className="refresh-info">
-                  <span className="refresh-text">
-                    {autoRefresh ? 'Tự động cập nhật: Bật' : 'Tự động cập nhật: Tắt'}
-                  </span>
-                  <span className="last-update">
-                    Cập nhật lần cuối: {formatUpdateTime()}
-                  </span>
-                </div>
-                
-                <div className="refresh-controls">
-                  <button 
-                    className="refresh-btn export-btn" 
-                    onClick={handleExportCSV}
-                    title="Xuất dữ liệu CSV"
-                  >
-                    CSV
-                  </button>
-                  <button 
-                    className="refresh-btn export-btn" 
-                    onClick={handleExportJSON}
-                    title="Xuất dữ liệu JSON"
-                  >
-                    JSON
-                  </button>
-                  <button 
-                    className="refresh-btn toggle-btn" 
-                    onClick={toggleAutoRefresh}
-                    title={autoRefresh ? 'Tắt tự động cập nhật' : 'Bật tự động cập nhật'}
-                  >
-                    {autoRefresh ? '⏸️ Tạm dừng' : '▶️ Kích hoạt'}
-                  </button>
-                  <button 
-                    className="refresh-btn manual-btn" 
-                    onClick={handleManualRefresh}
-                    title="Cập nhật ngay"
-                  >
-                    🔄 Cập nhật ngay
-                  </button>
-                </div>
-              </div>
+              
 
               {renderContent()}
             </>

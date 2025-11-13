@@ -6,13 +6,13 @@ import './UserList.css';
  * User List Component
  * Displays all users in a grid layout
  */
-const UserList = ({ users, onEdit, onDelete }) => {
+const UserList = ({ users, onSendEmail, onDelete }) => {
   if (!users || users.length === 0) {
     return (
       <div className="user-list-empty">
         <div className="empty-icon">👤</div>
         <h3>Không có người dùng nào</h3>
-        <p>Nhấn "Thêm người dùng" để tạo tài khoản mới</p>
+        <p>Chọc hệ thống sẽ sớm có người dùng!</p>
       </div>
     );
   }
@@ -24,7 +24,7 @@ const UserList = ({ users, onEdit, onDelete }) => {
           <UserCard
             key={user.id}
             user={user}
-            onEdit={() => onEdit(user)}
+            onSendEmail={() => onSendEmail(user)}
             onDelete={() => onDelete(user.id)}
           />
         ))}

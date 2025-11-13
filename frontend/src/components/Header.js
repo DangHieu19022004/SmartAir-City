@@ -72,9 +72,9 @@ const Header = ({ activeTab, setActiveTab, user, onLoginClick, onLogout }) => {
                     onClick={() => setShowAdminMenu(!showAdminMenu)}
                   >
                     <span className="user-avatar">
-                      {user.username?.charAt(0).toUpperCase() || '👤'}
+                      {user.name?.charAt(0).toUpperCase() || '👤'}
                     </span>
-                    <span className="user-name">{user.username}</span>
+                    <span className="user-name">{user.name}</span>
                     {user.role === 'admin' && (
                       <span className="admin-badge">Admin</span>
                     )}

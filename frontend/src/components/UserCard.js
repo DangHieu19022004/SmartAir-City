@@ -5,7 +5,7 @@ import './UserCard.css';
  * User Card Component
  * Displays individual user information
  */
-const UserCard = ({ user, onEdit, onDelete }) => {
+const UserCard = ({ user, onSendEmail, onDelete }) => {
   // Get role badge
   const getRoleBadge = (role) => {
     const roleMap = {
@@ -113,11 +113,11 @@ const UserCard = ({ user, onEdit, onDelete }) => {
       {/* Card Footer - Actions */}
       <div className="user-card-footer">
         <button 
-          className="btn btn-edit"
-          onClick={onEdit}
-          title="Chỉnh sửa người dùng"
+          className="btn btn-email"
+          onClick={onSendEmail}
+          title="Gửi email cho người dùng"
         >
-          ✏️ Sửa
+          📧 Gửi email
         </button>
         <button 
           className="btn btn-delete"

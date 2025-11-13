@@ -115,20 +115,21 @@ const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
         const result = await signup({
           email: formData.email,
           password: formData.password,
-          username: formData.username
+          name: formData.username // Backend expects 'name' field
         });
 
-        if (result.success) {
-          // Auto login after register
-          const loginResult = await login({
-            email: formData.email,
-            password: formData.password
-          });
+        console.log('[AuthModal] Signup result:', result);
 
-          if (loginResult.success) {
-            onLoginSuccess(loginResult.user);
-            handleClose();
-          }
+        if (result.success) {
+          // Show success message and switch to login
+          alert(result.message || 'Đăng ký thành công! Vui lòng đăng nhập.');
+          setMode('login');
+          setFormData(prev => ({
+            ...prev,
+            password: '', // Clear password for security
+            username: '',
+            confirmPassword: ''
+          }));
         } else {
           setServerError(result.error || 'Đăng ký thất bại');
         }

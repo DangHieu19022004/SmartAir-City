@@ -31,6 +31,7 @@ const STORAGE_KEYS = {
 
 /**
  * Transform user data từ backend → frontend format
+ * Backend response: { id?, name, email, role, password? }
  */
 const transformUser = (user) => {
   if (!user) return null;
@@ -38,15 +39,9 @@ const transformUser = (user) => {
   return {
     id: user.id,
     email: user.email,
-    username: user.username,
-    fullName: user.fullName || user.username,
-    role: user.role || 'user',
-    isEmailVerified: user.isEmailVerified || false,
-    avatar: user.avatar || null,
-    createdAt: user.createdAt,
-    updatedAt: user.updatedAt,
-    lastLogin: user.lastLogin,
-    _raw: user, // Keep original for debugging
+    name: user.name,
+    role: user.role || 'citizen',
+    _raw: user,
   };
 };
 
@@ -157,29 +152,20 @@ export const getAllUsers = async () => {
  * User signup
  * @param {object} userData - User registration data
  * @param {string} userData.email - Email
- * @param {string} userData.username - Username
  * @param {string} userData.password - Password
- * @param {string} userData.fullName - Full name (optional)
- * @returns {Promise<object>} Response with user and token
+ * @param {string} userData.name - Full name
+ * @returns {Promise<object>} Response with message and userId
  */
 export const signup = async (userData) => {
-  const response = await coreApiAxios.post('/api/Users/singup', userData);
+  const response = await coreApiAxios.post('/api/Users/signup', userData);
   
-  // Auto save token and user if provided
-  if (response.token) {
-    saveToken(response.token);
-  }
-  if (response.user) {
-    const transformedUser = transformUser(response.user);
-    saveUser(transformedUser);
-  }
+  console.log('📝 [Signup] Backend response:', response);
   
+  // Backend returns: { message, userId }
   return {
-    success: response.success !== false, // Pass through success from MSW
-    user: transformUser(response.user),
-    token: response.token,
+    success: true,
     message: response.message,
-    error: response.error,
+    userId: response.userId,
   };
 };
 
@@ -188,26 +174,25 @@ export const signup = async (userData) => {
  * @param {object} credentials - Login credentials
  * @param {string} credentials.email - Email
  * @param {string} credentials.password - Password
- * @returns {Promise<object>} Response with user and token
+ * @returns {Promise<object>} Response with user data
  */
 export const login = async (credentials) => {
   const response = await coreApiAxios.post('/api/Users/login', credentials);
   
-  // Auto save token and user
-  if (response.token) {
-    saveToken(response.token);
-  }
-  if (response.user) {
-    const transformedUser = transformUser(response.user);
-    saveUser(transformedUser);
-  }
+  console.log('🔐 [Login] Backend response:', response);
+  
+  // Backend returns user data directly: { name, email, role }
+  const transformedUser = transformUser(response);
+  
+  // Save user data (no token from backend)
+  saveUser(transformedUser);
+  // Save a dummy token for isAuthenticated check
+  saveToken('authenticated');
   
   return {
-    success: response.success !== false, // Pass through success from MSW
-    user: transformUser(response.user),
-    token: response.token,
-    message: response.message,
-    error: response.error,
+    success: true,
+    user: transformedUser,
+    message: 'Đăng nhập thành công',
   };
 };
 
@@ -244,6 +229,26 @@ export const remove = async (id) => {
  */
 export const deleteUser = async (id) => {
   return await remove(id);
+};
+
+/**
+ * Send email to user
+ * @param {string} email - Recipient email
+ * @param {string} message - Email message
+ * @returns {Promise<object>} Response with success message
+ */
+export const sendEmail = async (email, message) => {
+  const response = await coreApiAxios.post('/api/Users/email', {
+    email,
+    message
+  });
+  
+  console.log('📧 [SendEmail] Backend response:', response);
+  
+  return {
+    success: true,
+    message: response.message || `Đã gửi email tới ${email}`
+  };
 };
 
 /**

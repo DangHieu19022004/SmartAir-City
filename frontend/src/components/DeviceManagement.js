@@ -4,6 +4,7 @@ import DeviceList from './DeviceList';
 import DeviceForm from './DeviceForm';
 import LoadingSpinner from './LoadingSpinner';
 import ErrorMessage from './ErrorMessage';
+import { devicesService } from '../services';
 import './DeviceManagement.css';
 
 /**
@@ -26,6 +27,8 @@ const DeviceManagement = () => {
   const [editingDevice, setEditingDevice] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all'); // all, active, inactive
+  const [showDeviceDetails, setShowDeviceDetails] = useState(false);
+  const [selectedDevice, setSelectedDevice] = useState(null);
 
   // Filter devices based on search and status
   const filteredDevices = devices.filter(device => {
@@ -65,6 +68,43 @@ const DeviceManagement = () => {
   const handleEditDevice = (device) => {
     setEditingDevice(device);
     setIsFormOpen(true);
+  };
+
+  /**
+   * Handle Toggle Device Status
+   */
+  const handleToggleStatus = async (device) => {
+    const newStatus = device.status === 'active' ? 'inactive' : 'active';
+    const confirmMessage = newStatus === 'active' 
+      ? `Bạn có muốn BẬT thiết bị "${device.deviceName}"?`
+      : `Bạn có muốn TẮT thiết bị "${device.deviceName}"?`;
+
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      const result = await devicesService.updateDeviceStatus(device.id, newStatus);
+      alert(result.message || 'Đã cập nhật trạng thái thành công!');
+      // Refresh devices to show updated status
+      fetchDevices();
+    } catch (err) {
+      alert(`Lỗi khi cập nhật trạng thái: ${err.message}`);
+    }
+  };
+
+  /**
+   * Handle View Device Details
+   */
+  const handleViewDetails = async (device) => {
+    try {
+      // Fetch full device details
+      const fullDevice = await devicesService.getDeviceById(device.id);
+      setSelectedDevice(fullDevice);
+      setShowDeviceDetails(true);
+    } catch (err) {
+      alert(`Lỗi khi tải thông tin thiết bị: ${err.message}`);
+    }
   };
 
   /**
@@ -227,7 +267,8 @@ const DeviceManagement = () => {
       {!isLoading && !error && (
         <DeviceList
           devices={filteredDevices}
-          onEdit={handleEditDevice}
+          onToggleStatus={handleToggleStatus}
+          onViewDetails={handleViewDetails}
           onDelete={handleDeleteDevice}
         />
       )}
@@ -242,6 +283,88 @@ const DeviceManagement = () => {
               onCancel={handleFormCancel}
               isLoading={isLoading}
             />
+          </div>
+        </div>
+      )}
+
+      {/* Device Details Modal */}
+      {showDeviceDetails && selectedDevice && (
+        <div className="modal-overlay" onClick={() => setShowDeviceDetails(false)}>
+          <div className="modal-content device-details-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>📡 Chi tiết thiết bị</h2>
+              <button className="modal-close" onClick={() => setShowDeviceDetails(false)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div className="detail-section">
+                <h3>Thông tin cơ bản</h3>
+                <div className="detail-row">
+                  <span className="detail-label">ID:</span>
+                  <span className="detail-value">{selectedDevice.id}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Device ID:</span>
+                  <span className="detail-value">{selectedDevice.deviceId}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Tên thiết bị:</span>
+                  <span className="detail-value">{selectedDevice.deviceName}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Loại:</span>
+                  <span className="detail-value">{selectedDevice.type}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Trạng thái:</span>
+                  <span className={`status-badge status-${selectedDevice.status}`}>
+                    {selectedDevice.status === 'active' ? '✅ Hoạt động' : '⏸️ Không hoạt động'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="detail-section">
+                <h3>Thông số kỹ thuật</h3>
+                <div className="detail-row">
+                  <span className="detail-label">Đo đạc:</span>
+                  <span className="detail-value">{selectedDevice.observedProperty}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Khu vực quan tâm:</span>
+                  <span className="detail-value">{selectedDevice.featureOfInterest}</span>
+                </div>
+              </div>
+
+              <div className="detail-section">
+                <h3>Vị trí</h3>
+                <div className="detail-row">
+                  <span className="detail-label">Loại:</span>
+                  <span className="detail-value">{selectedDevice.location?.type || 'N/A'}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Tọa độ:</span>
+                  <span className="detail-value">
+                    {selectedDevice.location?.coordinates 
+                      ? `[${selectedDevice.location.coordinates[0]}, ${selectedDevice.location.coordinates[1]}]`
+                      : 'N/A'}
+                  </span>
+                </div>
+              </div>
+
+              {selectedDevice.description && (
+                <div className="detail-section">
+                  <h3>Mô tả</h3>
+                  <p className="detail-description">{selectedDevice.description}</p>
+                </div>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button 
+                className="btn btn-primary" 
+                onClick={() => setShowDeviceDetails(false)}
+              >
+                Đóng
+              </button>
+            </div>
           </div>
         </div>
       )}

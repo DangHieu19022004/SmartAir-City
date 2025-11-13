@@ -19,24 +19,22 @@ import { coreApiAxios } from './axiosInstance';
 
 /**
  * Transform device data từ backend → frontend format
- * Backend: GeoJsonPoint schema với location.coordinates
- * Frontend: Simplified format với lat, lng
+ * Backend response fields: deviceId, deviceName, type, observedProperty, featureOfInterest, location, status, description
+ * Keep backend field names as-is for display
  */
 const transformDevice = (device) => {
   if (!device) return null;
 
   return {
     id: device.id,
-    name: device.name,
+    deviceId: device.deviceId, // Keep backend field
+    deviceName: device.deviceName, // Keep backend field
     type: device.type,
     status: device.status,
-    location: {
-      lat: device.location?.coordinates?.[1] || 0, // GeoJSON: [lng, lat]
-      lng: device.location?.coordinates?.[0] || 0,
-      address: device.location?.address || '',
-    },
-    lastActive: device.lastActive,
-    metadata: device.metadata || {},
+    observedProperty: device.observedProperty, // New field from backend
+    featureOfInterest: device.featureOfInterest, // New field from backend
+    location: device.location, // Keep GeoJSON format as-is
+    description: device.description, // Keep backend field
     createdAt: device.createdAt,
     updatedAt: device.updatedAt,
     _raw: device, // Keep original for debugging
@@ -52,27 +50,27 @@ const transformDeviceArray = (devices) => {
 };
 
 /**
- * Transform frontend device data → backend format
- * Frontend: { lat, lng }
- * Backend: GeoJsonPoint { coordinates: [lng, lat] }
+ * Transform frontend device data → backend format for create/update
+ * Maps UI fields to backend API schema
  */
 const transformDeviceToBackend = (device) => {
   const backendDevice = {
-    name: device.name,
+    deviceName: device.deviceName || device.name,
     type: device.type,
     status: device.status,
-    metadata: device.metadata || {},
+    observedProperty: device.observedProperty || 'AirQuality',
+    featureOfInterest: device.featureOfInterest || 'urn:ngsi-ld:Air:urban-hanoi',
+    description: device.description || '',
   };
 
   // Transform location if provided
   if (device.location) {
     backendDevice.location = {
       type: 'Point',
-      coordinates: [
-        device.location.lng || 0,
-        device.location.lat || 0,
+      coordinates: device.location.coordinates || [
+        device.location.lng || 105.852,
+        device.location.lat || 21.034,
       ],
-      address: device.location.address || '',
     };
   }
 
@@ -161,6 +159,26 @@ export const remove = async (id) => {
  */
 export const deleteDevice = async (id) => {
   return await remove(id);
+};
+
+/**
+ * Update device status
+ * @param {string} id - Device ID
+ * @param {string} status - New status ('active' or 'inactive')
+ * @returns {Promise<object>} Response with message and status
+ */
+export const updateDeviceStatus = async (id, status) => {
+  const response = await coreApiAxios.put(`/api/Devices/${id}/status`, {
+    status
+  });
+  
+  console.log('🔄 [DevicesService] updateDeviceStatus response:', response);
+  
+  return {
+    success: true,
+    message: response.message || 'Cập nhật trạng thái thành công',
+    status: response.status
+  };
 };
 
 // ============================================
@@ -261,6 +279,7 @@ const devicesService = {
   createDevice,
   updateDevice,
   deleteDevice,
+  updateDeviceStatus,
   
   // Helpers
   getStatusInfo,

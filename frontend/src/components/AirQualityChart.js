@@ -83,7 +83,7 @@ const AirQualityChart = () => {
   return (
     <div className="chart-container">
       <div className="chart-header">
-        <h3>📈 Biểu đồ theo dõi chất lượng không khí</h3>
+        <h3>Biểu đồ theo dõi chất lượng không khí</h3>
         {isConnected && <span className="realtime-indicator">🟢 Realtime</span>}
       </div>
 

@@ -31,6 +31,7 @@ export const airQualityAxios = axios.create({
 
 /**
  * Core API Instance - Devices, Users & Auth (Port 5252)
+ * Backend must have CORS enabled to allow requests from localhost:3000
  */
 export const coreApiAxios = axios.create({
   baseURL: process.env.REACT_APP_CORE_API_URL || 'http://localhost:5252',
@@ -40,7 +41,7 @@ export const coreApiAxios = axios.create({
 
 // Debug logging
 console.log('🔧 [Axios Config] Core API Base URL:', coreApiAxios.defaults.baseURL);
-console.log('🔧 [Env Var] REACT_APP_CORE_API_URL:', process.env.REACT_APP_CORE_API_URL);
+console.log('🔧 [Env] REACT_APP_CORE_API_URL:', process.env.REACT_APP_CORE_API_URL);
 
 // ============================================
 // REQUEST INTERCEPTOR

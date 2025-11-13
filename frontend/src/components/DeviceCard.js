@@ -5,7 +5,7 @@ import './DeviceCard.css';
  * Device Card Component
  * Displays individual device information
  */
-const DeviceCard = ({ device, onEdit, onDelete }) => {
+const DeviceCard = ({ device, onToggleStatus, onViewDetails, onDelete }) => {
   // Format location (handle both string and GeoJSON object)
   const formatLocation = (location) => {
     if (!location) return 'N/A';
@@ -23,24 +23,24 @@ const DeviceCard = ({ device, onEdit, onDelete }) => {
     return 'N/A';
   };
 
-  // Format last seen time
-  const formatLastSeen = (dateString) => {
-    if (!dateString) return 'Chưa có dữ liệu';
+  // // Format last seen time
+  // const formatLastSeen = (dateString) => {
+  //   if (!dateString) return 'Chưa có dữ liệu';
     
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMins = Math.floor(diffMs / 60000);
+  //   const date = new Date(dateString);
+  //   const now = new Date();
+  //   const diffMs = now - date;
+  //   const diffMins = Math.floor(diffMs / 60000);
     
-    if (diffMins < 1) return 'Vừa xong';
-    if (diffMins < 60) return `${diffMins} phút trước`;
+  //   if (diffMins < 1) return 'Vừa xong';
+  //   if (diffMins < 60) return `${diffMins} phút trước`;
     
-    const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return `${diffHours} giờ trước`;
+  //   const diffHours = Math.floor(diffMins / 60);
+  //   if (diffHours < 24) return `${diffHours} giờ trước`;
     
-    const diffDays = Math.floor(diffHours / 24);
-    return `${diffDays} ngày trước`;
-  };
+  //   const diffDays = Math.floor(diffHours / 24);
+  //   return `${diffDays} ngày trước`;
+  // };
 
   // Get status badge
   const getStatusBadge = (status) => {
@@ -65,16 +65,18 @@ const DeviceCard = ({ device, onEdit, onDelete }) => {
       : { label: 'Ngoại tuyến', className: 'online-no', icon: '🔴' };
   };
 
-  const statusBadge = getStatusBadge(device.status);
-  const onlineStatus = getOnlineStatus(device.isOnline);
-
   // Map device fields for display (handle both API format and UI format)
-  const displayName = device.name || device.deviceName || 'Unnamed Device';
+  const displayName = device.deviceName || device.name || 'Unnamed Device';
   const displayDeviceId = device.deviceId || device.id || 'N/A';
-  const displayType = device.deviceType || device.type || 'Air Quality Sensor';
+  const displayType = device.type || device.deviceType || 'Sensor';
+  const displayObservedProperty = device.observedProperty || 'N/A';
+  const displayFeatureOfInterest = device.featureOfInterest || 'N/A';
+
+  const statusBadge = getStatusBadge(device.status);
+  const onlineStatus = getOnlineStatus(device.status === 'active');
 
   return (
-    <div className={`device-card ${device.isOnline ? 'device-online' : 'device-offline'}`}>
+    <div className={`device-card ${device.status === 'active' ? 'device-online' : 'device-offline'}`}>
       {/* Card Header */}
       <div className="device-card-header">
         <div className="device-icon">📡</div>
@@ -97,31 +99,29 @@ const DeviceCard = ({ device, onEdit, onDelete }) => {
           </span>
         </div>
 
-        {/* Location */}
-        <div className="device-field">
-          <span className="field-label">📍 Vị trí:</span>
-          <span className="field-value">{formatLocation(device.location)}</span>
-        </div>
-
         {/* Device Type */}
         <div className="device-field">
           <span className="field-label">🔧 Loại:</span>
           <span className="field-value">{displayType}</span>
         </div>
 
-        {/* Last Seen */}
+        {/* Observed Property */}
         <div className="device-field">
-          <span className="field-label">🕐 Cập nhật:</span>
-          <span className="field-value">{formatLastSeen(device.lastSeen)}</span>
+          <span className="field-label">📊 Đo đạc:</span>
+          <span className="field-value">{displayObservedProperty}</span>
         </div>
 
-        {/* Firmware Version */}
-        {device.firmwareVersion && (
-          <div className="device-field">
-            <span className="field-label">⚙️ Firmware:</span>
-            <span className="field-value">{device.firmwareVersion}</span>
-          </div>
-        )}
+        {/* Feature of Interest */}
+        <div className="device-field">
+          <span className="field-label">🌍 Khu vực:</span>
+          <span className="field-value">{displayFeatureOfInterest.split(':').pop()}</span>
+        </div>
+
+        {/* Location */}
+        <div className="device-field">
+          <span className="field-label">📍 Tọa độ:</span>
+          <span className="field-value">{formatLocation(device.location)}</span>
+        </div>
 
         {/* Description */}
         {device.description && (
@@ -135,11 +135,18 @@ const DeviceCard = ({ device, onEdit, onDelete }) => {
       {/* Card Footer - Actions */}
       <div className="device-card-footer">
         <button 
-          className="btn btn-edit"
-          onClick={onEdit}
-          title="Chỉnh sửa thiết bị"
+          className={`btn btn-toggle ${device.status === 'active' ? 'btn-toggle-on' : 'btn-toggle-off'}`}
+          onClick={() => onToggleStatus(device)}
+          title={device.status === 'active' ? 'Tắt thiết bị' : 'Bật thiết bị'}
         >
-          ✏️ Sửa
+          {device.status === 'active' ? '⏸️ Tắt' : '▶️ Bật'}
+        </button>
+        <button 
+          className="btn btn-view"
+          onClick={() => onViewDetails(device)}
+          title="Xem chi tiết thiết bị"
+        >
+          👁️ Xem
         </button>
         <button 
           className="btn btn-delete"

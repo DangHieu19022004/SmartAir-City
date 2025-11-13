@@ -85,6 +85,8 @@ export {
   getAll as getDevicesAll,
   update as updateDevice,
   remove as removeDevice,
+  updateDeviceStatus,
+  getDeviceById,
   getStatusInfo as getDeviceStatusInfo,
   getTypeInfo as getDeviceTypeInfo,
   filterByStatus as filterDevicesByStatus,
