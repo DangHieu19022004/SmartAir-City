@@ -20,7 +20,7 @@ builder.Services.AddSingleton<IMqttClient>(provider =>
 
     var options = new MqttClientOptionsBuilder()
         .WithTcpServer("localhost", 1883) // Broker địa chỉ
-        .WithCredentials("username", "password") // User và Password
+        .WithCredentials("usn", "pw") // User và Password
         .Build();
 
     client.ConnectAsync(options).Wait(); // Kết nối ngay khi ứng dụng khởi động

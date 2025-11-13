@@ -71,8 +71,8 @@ namespace MyMongoApi.Controllers
             var client = factory.CreateMqttClient();
 
             var options = new MqttClientOptionsBuilder()
-            .WithTcpServer("loclhost", 1883)  // Broker của bạn
-            .WithCredentials("username", "password")  // Username và password
+            .WithTcpServer("localhost", 1883)  // Broker của bạn
+            .WithCredentials("usn", "pw")  // Username và password
             .Build();
 
             // Kết nối đến broker
