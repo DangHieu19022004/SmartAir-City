@@ -38,6 +38,9 @@ class AirQualityWebSocket {
     try {
       const hubUrl = getWebSocketUrl('airQuality');
       
+      console.log('[AirQualityWS] Connecting to hub:', hubUrl);
+      console.log('[AirQualityWS] Base URL:', process.env.REACT_APP_AIR_WS_URL);
+      
       this.wsManager = new WebSocketManager(hubUrl, {
         maxReconnectAttempts: 5,
         reconnectDelay: 3000,
@@ -69,12 +72,16 @@ class AirQualityWebSocket {
   subscribeToEvents() {
     if (!this.wsManager) return;
 
+    console.log('📡 [AirQualityWS] Subscribing to events:', WS_EVENTS.AIR_QUALITY);
+
     // New Air Quality data event
     this.wsManager.on(WS_EVENTS.AIR_QUALITY.NEW_DATA, (data) => {
-      console.log('[AirQualityWS] Received new data:', data);
+      console.log('✅ [AirQualityWS] ✨✨✨ Received NEW_DATA event!');
+      console.log('📦 [AirQualityWS] Raw data:', data);
       
       // Transform data
       const transformedData = airQualityService.transformAirQualityData(data);
+      console.log('📦 [AirQualityWS] Transformed data:', transformedData);
       this.lastData = transformedData;
       
       // Notify listeners
@@ -83,7 +90,7 @@ class AirQualityWebSocket {
 
     // Air Quality update event
     this.wsManager.on(WS_EVENTS.AIR_QUALITY.UPDATE, (data) => {
-      console.log('[AirQualityWS] Received update:', data);
+      console.log('✅ [AirQualityWS] Received UPDATE:', data);
       
       const transformedData = airQualityService.transformAirQualityData(data);
       this.lastData = transformedData;
@@ -93,14 +100,14 @@ class AirQualityWebSocket {
 
     // Alert event
     this.wsManager.on(WS_EVENTS.AIR_QUALITY.ALERT, (alert) => {
-      console.warn('[AirQualityWS] Received alert:', alert);
+      console.warn('🚨 [AirQualityWS] Received ALERT:', alert);
       
       this.notifyListeners('alert', alert);
     });
 
     // Device status change
     this.wsManager.on(WS_EVENTS.DEVICES.STATUS_CHANGED, (device) => {
-      console.log('[AirQualityWS] Device status changed:', device);
+      console.log('🔧 [AirQualityWS] Device status changed:', device);
       
       this.notifyListeners('deviceStatusChanged', device);
     });

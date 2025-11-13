@@ -51,6 +51,12 @@ class WebSocketManager {
       .withUrl(this.hubUrl, {
         skipNegotiation: false,
         transport: signalR.HttpTransportType.WebSockets | signalR.HttpTransportType.ServerSentEvents,
+        // Skip certificate validation in development (HTTPS localhost)
+        ...(process.env.NODE_ENV === 'development' && {
+          headers: {
+            'Access-Control-Allow-Origin': '*'
+          }
+        })
       })
       .withAutomaticReconnect({
         nextRetryDelayInMilliseconds: (retryContext) => {

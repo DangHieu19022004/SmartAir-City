@@ -1,40 +1,64 @@
 // © 2025 SmartAir City Team
 // Licensed under the MIT License. See LICENSE file for details.
 
-import React, { useState } from 'react';
-import useAirQuality from '../hooks/useAirQuality';
-import './APIDataViewer.css';
+import React, { useState } from "react";
+import { useAirQualityContext } from "../contexts/AirQualityContext";
+import "./APIDataViewer.css";
 
 /**
  * API Data Viewer Component
  * Displays raw Air Quality API data
  */
 const APIDataViewer = () => {
-  const [activeDataset, setActiveDataset] = useState('airQuality');
+  const [activeDataset, setActiveDataset] = useState("airQuality");
+  const [showRaw, setShowRaw] = useState(false);
 
-  // Get data from Air Quality hook only
-  const { 
-    latestData: airQualityData, 
-    alerts, 
+  // Get data from Air Quality context (shared state)
+  const {
+    latestData: airQualityData,
+    alerts,
     isLoading,
-    error 
-  } = useAirQuality();
+    error,
+  } = useAirQualityContext();
+
+  // Clean data for display - remove transformation artifacts
+  const cleanData = (data) => {
+    if (!Array.isArray(data)) return data;
+    
+    return data.map(item => {
+      // If showing raw NGSI-LD format
+      if (showRaw && item._raw) {
+        return item._raw;
+      }
+      
+      // Show cleaned transformed data (remove nested pollutants and _raw)
+      const { pollutants, _raw, ...cleanItem } = item;
+      
+      // Remove temperature/humidity if they are default fallback values
+      if (cleanItem.temperature === 25 && cleanItem.humidity === 60) {
+        delete cleanItem.temperature;
+        delete cleanItem.humidity;
+      }
+      
+      return cleanItem;
+    });
+  };
 
   const datasets = {
     airQuality: {
-      title: '🌡️ Air Quality Data',
-      data: airQualityData,
+      title: "🌡️ Air Quality Data",
+      data: cleanData(airQualityData),
       count: airQualityData?.length || 0,
       loading: isLoading,
-      error: error
+      error: error,
     },
     alerts: {
-      title: '⚠️ Alerts Data',
+      title: "⚠️ Alerts Data",
       data: alerts,
       count: alerts?.length || 0,
       loading: isLoading,
-      error: error
-    }
+      error: error,
+    },
   };
 
   const currentDataset = datasets[activeDataset];
@@ -51,10 +75,10 @@ const APIDataViewer = () => {
 
       {/* Dataset Tabs */}
       <div className="dataset-tabs">
-        {Object.keys(datasets).map(key => (
+        {Object.keys(datasets).map((key) => (
           <button
             key={key}
-            className={`tab-btn ${activeDataset === key ? 'active' : ''}`}
+            className={`tab-btn ${activeDataset === key ? "active" : ""}`}
             onClick={() => setActiveDataset(key)}
           >
             {datasets[key].title}
@@ -75,8 +99,20 @@ const APIDataViewer = () => {
         </div>
         <div className="info-item">
           <span className="info-label">⏱️ Status:</span>
-          <span className={`status-badge ${currentDataset.loading ? 'loading' : currentDataset.error ? 'error' : 'success'}`}>
-            {currentDataset.loading ? '⏳ Loading...' : currentDataset.error ? '❌ Error' : '✅ Ready'}
+          <span
+            className={`status-badge ${
+              currentDataset.loading
+                ? "loading"
+                : currentDataset.error
+                ? "error"
+                : "success"
+            }`}
+          >
+            {currentDataset.loading
+              ? "⏳ Loading..."
+              : currentDataset.error
+              ? "❌ Error"
+              : "✅ Ready"}
           </span>
         </div>
       </div>
@@ -103,21 +139,32 @@ const APIDataViewer = () => {
           <div className="data-header">
             <h3>Raw JSON Data</h3>
             <div className="data-actions">
-              <button 
+              <button
+                className={`btn-toggle ${showRaw ? 'active' : ''}`}
+                onClick={() => setShowRaw(!showRaw)}
+              >
+                {showRaw ? '📋 Show Transformed' : '🔍 Show NGSI-LD'}
+              </button>
+              <button
                 className="btn-copy"
                 onClick={() => {
-                  navigator.clipboard.writeText(JSON.stringify(currentDataset.data, null, 2));
-                  alert('Đã copy JSON vào clipboard!');
+                  navigator.clipboard.writeText(
+                    JSON.stringify(currentDataset.data, null, 2)
+                  );
+                  alert("Đã copy JSON vào clipboard!");
                 }}
               >
                 📋 Copy JSON
               </button>
-              <button 
+              <button
                 className="btn-download"
                 onClick={() => {
-                  const blob = new Blob([JSON.stringify(currentDataset.data, null, 2)], { type: 'application/json' });
+                  const blob = new Blob(
+                    [JSON.stringify(currentDataset.data, null, 2)],
+                    { type: "application/json" }
+                  );
                   const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
+                  const a = document.createElement("a");
                   a.href = url;
                   a.download = `${activeDataset}-${Date.now()}.json`;
                   a.click();

@@ -1,31 +1,32 @@
 // © 2025 SmartAir City Team
 // Licensed under the MIT License. See LICENSE file for details.
 
-import React, { useEffect } from 'react';
-import { useAirQuality } from '../hooks';
+import React, { useEffect, useMemo } from 'react';
+import { useAirQualityContext } from '../contexts/AirQualityContext';
 import './StatsCards.css';
 
 const StatsCards = ({ stations: stationsProp }) => {
-  // Use the hook for realtime data
-  const { latestData, isLoading, isConnected } = useAirQuality({
-    enableWebSocket: true, // Enable realtime updates for stats
-  });
+  // Use the context for realtime data (shared state)
+  const { latestData, isLoading, isConnected } = useAirQualityContext();
 
-  // Use prop data if provided, otherwise use hook data
-  const stations = stationsProp || latestData;
+  // ALWAYS use latestData from context (ignore prop)
+  const stations = useMemo(() => latestData, [latestData]);
 
   console.log('📊 [StatsCards] Render:', {
     stationsProp: stationsProp?.length || 0,
     latestData: latestData?.length || 0,
     stations: stations?.length || 0,
     isLoading,
-    isConnected
+    isConnected,
+    firstStation: stations[0],
+    sampleAQI: stations[0]?.aqi,
+    sampleTimestamp: stations[0]?.dateObserved
   });
 
   // Log realtime updates
   useEffect(() => {
     if (isConnected && latestData.length > 0) {
-      console.log('📈 Stats updated with realtime data');
+      console.log('📈 Stats updated with realtime data, AQI:', latestData[0]?.aqi);
     }
   }, [isConnected, latestData]);
 

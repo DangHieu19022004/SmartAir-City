@@ -1,27 +1,28 @@
 // © 2025 SmartAir City Team
 // Licensed under the MIT License. See LICENSE file for details.
 
-import React, { useState, useEffect } from 'react';
-import { useAirQuality } from '../hooks';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useAirQualityContext } from '../contexts/AirQualityContext';
 import './AlertBanner.css';
 
 const AlertBanner = ({ stations: stationsProp }) => {
   const [recentAlerts, setRecentAlerts] = useState([]);
   
-  // Use the hook for realtime alerts
-  const { latestData, alerts, isConnected } = useAirQuality({
-    enableWebSocket: true, // Enable realtime alerts
-  });
+  // Use the context for realtime alerts (shared state)
+  const { latestData, alerts, isConnected } = useAirQualityContext();
 
-  // Use prop data if provided, otherwise use hook data
-  const stations = stationsProp || latestData;
+  // ALWAYS use latestData from context (ignore prop)
+  const stations = useMemo(() => latestData, [latestData]);
 
   console.log('🚨 [AlertBanner] Render:', {
     stationsProp: stationsProp?.length || 0,
     latestData: latestData?.length || 0,
     stations: stations?.length || 0,
     alerts: alerts?.length || 0,
-    isConnected
+    isConnected,
+    firstStation: stations[0],
+    sampleAQI: stations[0]?.aqi,
+    sampleTimestamp: stations[0]?.dateObserved
   });
 
   // Update recent alerts from hook

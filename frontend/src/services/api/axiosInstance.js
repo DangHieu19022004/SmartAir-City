@@ -30,13 +30,17 @@ export const airQualityAxios = axios.create({
 });
 
 /**
- * Core API Instance - Devices & Users (Port 5183)
+ * Core API Instance - Devices, Users & Auth (Port 5252)
  */
 export const coreApiAxios = axios.create({
-  baseURL: process.env.REACT_APP_CORE_API_URL || 'http://localhost:5183',
+  baseURL: process.env.REACT_APP_CORE_API_URL || 'http://localhost:5252',
   timeout: API_CONFIG.TIMEOUT,
   headers: API_CONFIG.DEFAULT_HEADERS,
 });
+
+// Debug logging
+console.log('🔧 [Axios Config] Core API Base URL:', coreApiAxios.defaults.baseURL);
+console.log('🔧 [Env Var] REACT_APP_CORE_API_URL:', process.env.REACT_APP_CORE_API_URL);
 
 // ============================================
 // REQUEST INTERCEPTOR

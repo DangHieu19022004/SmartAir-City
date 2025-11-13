@@ -194,6 +194,26 @@
   gap: 0.5rem;
 }
 
+.btn-toggle {
+  padding: 0.5rem 1rem;
+  background: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.btn-toggle:hover {
+  background: #e0e0e0;
+}
+
+.btn-toggle.active {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
 .btn-copy,
 .btn-download {
   padding: 0.5rem 1rem;

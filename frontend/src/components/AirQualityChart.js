@@ -1,230 +1,213 @@
 // © 2025 SmartAir City Team
 // Licensed under the MIT License. See LICENSE file for details.
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
   Tooltip,
   Legend,
-  Filler
-} from 'chart.js';
-import { Line } from 'react-chartjs-2';
-import { useAirQuality } from '../hooks';
-import './AirQualityChart.css';
+  ResponsiveContainer,
+} from "recharts";
+import { useAirQualityContext } from "../contexts/AirQualityContext";
+import "./AirQualityChart.css";
 
-// Register Chart.js components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-);
+/**
+ * Air Quality Chart Component
+ * Displays real-time trends of AQI and pollutants
+ */
+const AirQualityChart = () => {
+  const { latestData, isConnected } = useAirQualityContext();
+  const [chartData, setChartData] = useState([]);
+  const [maxDataPoints] = useState(20); // Keep last 20 data points
 
-const AirQualityChart = ({ historicalData: historicalDataProp, locationId, dateRange }) => {
-  const [localHistoricalData, setLocalHistoricalData] = useState([]);
-  
-  // Use the hook for fetching historical data
-  const { 
-    historicalData: hookHistoricalData, 
-    latestData,
-    fetchHistoricalData,
-    isLoading,
-    error 
-  } = useAirQuality({
-    enableWebSocket: false, // No need WebSocket for historical chart
-  });
-
-  // Fetch historical data when locationId or dateRange changes
+  // Update chart data when new data arrives
   useEffect(() => {
-    if (locationId && dateRange) {
-      const { startDate, endDate } = dateRange;
-      fetchHistoricalData(locationId, startDate, endDate)
-        .then(data => setLocalHistoricalData(data))
-        .catch(err => console.error('Failed to fetch historical data:', err));
+    if (!latestData || latestData.length === 0) return;
+
+    // Get the most recent station data
+    const station = latestData[0];
+
+    const newDataPoint = {
+      time: new Date(
+        station.dateObserved || station.timestamp
+      ).toLocaleTimeString("vi-VN", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      }),
+      timestamp: station.timestamp || new Date(station.dateObserved).getTime(),
+      AQI: Math.round(station.aqi || 0),
+      CO: parseFloat((station.co || 0).toFixed(2)),
+      SO2: parseFloat((station.so2 || 0).toFixed(2)),
+      NO2: parseFloat((station.no2 || 0).toFixed(2)),
+      O3: parseFloat((station.o3 || 0).toFixed(2)),
+      PM10: parseFloat((station.pm10 || 0).toFixed(2)),
+      "PM2.5": parseFloat((station.pm25 || 0).toFixed(2)),
+    };
+
+    setChartData((prevData) => {
+      // Avoid duplicates by checking timestamp
+      const lastPoint = prevData[prevData.length - 1];
+      if (lastPoint && lastPoint.timestamp === newDataPoint.timestamp) {
+        return prevData;
+      }
+
+      // Add new point and keep only last N points
+      const updatedData = [...prevData, newDataPoint].slice(-maxDataPoints);
+      return updatedData;
+    });
+  }, [latestData, maxDataPoints]);
+
+  // Custom tooltip
+  const CustomTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="custom-tooltip">
+          <p className="tooltip-time">{payload[0].payload.time}</p>
+          {payload.map((entry, index) => (
+            <p key={index} style={{ color: entry.color }}>
+              {entry.name}: <strong>{entry.value}</strong>
+              {entry.name === "AQI" ? "" : " µg/m³"}
+            </p>
+          ))}
+        </div>
+      );
     }
-  }, [locationId, dateRange, fetchHistoricalData]);
-
-  // Use prop data if provided, otherwise use hook data or local data
-  const historicalData = historicalDataProp || localHistoricalData || hookHistoricalData;
-
-  // If no historical data, use latest data for basic chart
-  const displayData = historicalData.length > 0 
-    ? historicalData 
-    : latestData.slice(0, 24); // Show first 24 stations if no historical data
-  
-  // Prepare data for the chart
-  const chartData = {
-    labels: displayData.map(d => 
-      new Date(d.timestamp).toLocaleTimeString('vi-VN', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
-      })
-    ),
-    datasets: [
-      {
-        label: 'AQI',
-        data: displayData.map(d => d.aqi),
-        borderColor: 'rgb(75, 192, 192)',
-        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-        fill: true,
-        tension: 0.4,
-        borderWidth: 2,
-        pointRadius: 3,
-        pointHoverRadius: 5
-      },
-      {
-        label: 'PM2.5',
-        data: displayData.map(d => d.pm25),
-        borderColor: 'rgb(255, 99, 132)',
-        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-        fill: true,
-        tension: 0.4,
-        borderWidth: 2,
-        pointRadius: 3,
-        pointHoverRadius: 5
-      }
-    ]
-  };
-
-  // Chart configuration
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'top',
-        labels: {
-          font: {
-            size: 12,
-            family: 'Inter'
-          },
-          padding: 15,
-          usePointStyle: true
-        }
-      },
-      title: {
-        display: true,
-        text: 'Xu hướng chất lượng không khí (24 giờ)',
-        font: {
-          size: 16,
-          weight: '600',
-          family: 'Inter'
-        },
-        padding: {
-          top: 10,
-          bottom: 20
-        }
-      },
-      tooltip: {
-        mode: 'index',
-        intersect: false,
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        padding: 12,
-        titleFont: {
-          size: 13
-        },
-        bodyFont: {
-          size: 12
-        },
-        callbacks: {
-          label: function(context) {
-            let label = context.dataset.label || '';
-            if (label) {
-              label += ': ';
-            }
-            label += Math.round(context.parsed.y * 10) / 10;
-            if (context.dataset.label === 'PM2.5') {
-              label += ' µg/m³';
-            }
-            return label;
-          }
-        }
-      }
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        title: {
-          display: true,
-          text: 'Giá trị',
-          font: {
-            size: 12,
-            weight: '500'
-          }
-        },
-        grid: {
-          color: 'rgba(0, 0, 0, 0.05)'
-        }
-      },
-      x: {
-        grid: {
-          display: false
-        },
-        ticks: {
-          maxRotation: 45,
-          minRotation: 45
-        }
-      }
-    },
-    interaction: {
-      mode: 'nearest',
-      axis: 'x',
-      intersect: false
-    }
+    return null;
   };
 
   return (
     <div className="chart-container">
-      {error && (
-        <div style={{
-          padding: '16px',
-          backgroundColor: '#fff3cd',
-          border: '1px solid #ffc107',
-          borderRadius: '4px',
-          marginBottom: '16px',
-          color: '#856404',
-          fontSize: '14px'
-        }}>
-          ⚠️ {error}
-        </div>
-      )}
-      
-      {isLoading && displayData.length === 0 ? (
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: '300px',
-          fontSize: '14px',
-          color: '#666'
-        }}>
-          ⏳ Đang tải dữ liệu biểu đồ...
-        </div>
-      ) : displayData.length === 0 ? (
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: '300px',
-          fontSize: '14px',
-          color: '#999'
-        }}>
-          📊 Chưa có dữ liệu để hiển thị
+      <div className="chart-header">
+        <h3>📈 Biểu đồ theo dõi chất lượng không khí</h3>
+        {isConnected && <span className="realtime-indicator">🟢 Realtime</span>}
+      </div>
+
+      {chartData.length === 0 ? (
+        <div className="chart-empty">
+          <p>⏳ Đang chờ dữ liệu realtime...</p>
         </div>
       ) : (
-        <div className="chart-wrapper">
-          <Line data={chartData} options={options} />
-        </div>
+        <>
+          {/* Main Chart - AQI and Pollutants */}
+          <div className="chart-wrapper">
+            <h4 className="chart-subtitle">AQI và các chất ô nhiễm (µg/m³)</h4>
+            <ResponsiveContainer width="100%" height={400}>
+              <LineChart
+                data={chartData}
+                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis
+                  dataKey="time"
+                  stroke="#6b7280"
+                  style={{ fontSize: "12px" }}
+                />
+                <YAxis stroke="#6b7280" style={{ fontSize: "12px" }} />
+                <Tooltip content={<CustomTooltip />} />
+                <Legend wrapperStyle={{ fontSize: "14px" }} iconType="line" />
+
+                {/* AQI - Purple */}
+                <Line
+                  type="monotone"
+                  dataKey="AQI"
+                  stroke="#8b5cf6"
+                  strokeWidth={3}
+                  dot={{ r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+
+                {/* SO2 - Orange */}
+                <Line
+                  type="monotone"
+                  dataKey="SO2"
+                  stroke="#f97316"
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                />
+
+                {/* NO2 - Red */}
+                <Line
+                  type="monotone"
+                  dataKey="NO2"
+                  stroke="#ef4444"
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                />
+
+                {/* O3 - Blue */}
+                <Line
+                  type="monotone"
+                  dataKey="O3"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                />
+
+                {/* PM10 - Green */}
+                <Line
+                  type="monotone"
+                  dataKey="PM10"
+                  stroke="#10b981"
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                />
+
+                {/* PM2.5 - Teal */}
+                <Line
+                  type="monotone"
+                  dataKey="PM2.5"
+                  stroke="#14b8a6"
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Separate CO Chart */}
+          <div className="chart-wrapper chart-secondary">
+            <h4 className="chart-subtitle">Carbon Monoxide - CO (ppm)</h4>
+            <ResponsiveContainer width="100%" height={250}>
+              <LineChart
+                data={chartData}
+                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis
+                  dataKey="time"
+                  stroke="#6b7280"
+                  style={{ fontSize: "12px" }}
+                />
+                <YAxis stroke="#6b7280" style={{ fontSize: "12px" }} />
+                <Tooltip content={<CustomTooltip />} />
+                <Legend wrapperStyle={{ fontSize: "14px" }} iconType="line" />
+
+                {/* CO - Brown */}
+                <Line
+                  type="monotone"
+                  dataKey="CO"
+                  stroke="#92400e"
+                  strokeWidth={3}
+                  dot={{ r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </>
       )}
+
+      <div className="chart-info">
+        <p>
+          💡 Biểu đồ hiển thị {maxDataPoints} điểm dữ liệu gần nhất, tự động cập
+          nhật khi có dữ liệu mới
+        </p>
+      </div>
     </div>
   );
 };

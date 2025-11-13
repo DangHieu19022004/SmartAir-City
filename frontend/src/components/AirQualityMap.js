@@ -1,11 +1,11 @@
 // © 2025 SmartAir City Team
 // Licensed under the MIT License. See LICENSE file for details.
 
-import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { useAirQuality } from '../hooks';
+import { useAirQualityContext } from '../contexts/AirQualityContext';
 import { airQualityService } from '../services';
 import './AirQualityMap.css';
 
@@ -19,36 +19,116 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
 });
 
+// Component to update markers dynamically
+const MarkerLayer = ({ stations, onStationClick, createCustomIcon }) => {
+  const map = useMap();
+  const markersRef = useRef(new Map());
+
+  useEffect(() => {
+    if (stations.length > 0) {
+      console.log('🗺️ [MarkerLayer] First station:', stations[0].name, 'AQI:', stations[0].aqi);
+    }
+    
+    const currentMarkers = markersRef.current;
+    
+    // Clear all existing markers
+    currentMarkers.forEach(marker => {
+      map.removeLayer(marker);
+    });
+    currentMarkers.clear();
+
+    // Add new markers with current AQI
+    stations.forEach((station, index) => {
+      const lat = station.location?.lat || station.location?.coordinates?.[1];
+      const lng = station.location?.lng || station.location?.coordinates?.[0];
+      
+      if (!lat || !lng) {
+        console.warn('⚠️ [MarkerLayer] Missing coordinates for station:', station.name);
+        return;
+      }
+
+      const marker = L.marker([lat, lng], {
+        icon: createCustomIcon(station.aqi)
+      });
+
+      const popupContent = `
+        <div class="popup-content">
+          <h3>${station.name}</h3>
+          <div class="aqi-badge" style="background-color: ${getAQIColor(station.aqi)}">
+            AQI: ${Math.round(station.aqi)}
+          </div>
+          <p class="aqi-level">${getAQILevel(station.aqi).label}</p>
+          <div class="popup-details">
+            <p><strong>PM2.5:</strong> ${station.pm25.toFixed(1)} µg/m³</p>
+            <p><strong>PM10:</strong> ${station.pm10.toFixed(1)} µg/m³</p>
+            <p><strong>CO:</strong> ${station.co.toFixed(1)} ppm</p>
+            <p><strong>SO2:</strong> ${station.so2.toFixed(1)} µg/m³</p>
+            <p><strong>NO2:</strong> ${station.no2.toFixed(1)} µg/m³</p>
+            <p><strong>O3:</strong> ${station.o3.toFixed(1)} µg/m³</p>
+          </div>
+          <p class="update-time">
+            Cập nhật: ${new Date(station.timestamp || station.dateObserved).toLocaleString('vi-VN')}
+          </p>
+          <p style="font-size: 11px; color: #51cf66; margin-top: 4px; display: flex; align-items: center; gap: 4px;">
+            🟢 Realtime
+          </p>
+        </div>
+      `;
+
+      marker.bindPopup(popupContent);
+      
+      if (onStationClick) {
+        marker.on('click', () => onStationClick(station));
+      }
+
+      marker.addTo(map);
+      currentMarkers.set(station.id || index, marker);
+    });
+    // Cleanup on unmount
+    return () => {
+      currentMarkers.forEach(marker => {
+        map.removeLayer(marker);
+      });
+      currentMarkers.clear();
+    };
+  }, [stations, map, onStationClick, createCustomIcon]);
+
+  return null;
+};
+
 const AirQualityMap = ({ stations: stationsProp, onStationClick }) => {
   const [center] = useState([21.0285, 105.8542]); // Hanoi center
   const [zoom] = useState(12);
 
-  // Use the hook for realtime data
-  const { latestData, isLoading, error, isConnected } = useAirQuality({
-    enableWebSocket: true, // Enable realtime updates
-  });
+  // Use the context for realtime data (shared state)
+  const { latestData, isLoading, error } = useAirQualityContext();
 
-  // Use prop data if provided, otherwise use hook data
-  const stations = stationsProp || latestData;
-
-  console.log('🗺️ [AirQualityMap] Render:', {
-    stationsProp: stationsProp?.length || 0,
-    latestData: latestData?.length || 0,
-    stations: stations?.length || 0,
-    isLoading,
-    isConnected
-  });
-
-  // Log connection status
-  useEffect(() => {
-    if (isConnected) {
-      console.log('🗺️ Map connected to realtime data');
-    }
-  }, [isConnected]);
+  // ALWAYS use latestData from context (ignore prop)
+  const stations = useMemo(() => {
+   
+    // Group by location coordinates to avoid duplicates
+    const uniqueStations = new Map();
+    latestData.forEach(station => {
+      const lat = station.location?.lat || station.location?.coordinates?.[1];
+      const lng = station.location?.lng || station.location?.coordinates?.[0];
+      const key = `${lat},${lng}`;
+      
+      // Keep the most recent station at each location
+      const existing = uniqueStations.get(key);
+      if (!existing || new Date(station.dateObserved) > new Date(existing.dateObserved)) {
+        uniqueStations.set(key, station);
+      }
+    });
+    
+    const result = Array.from(uniqueStations.values());
+    return result;
+  }, [latestData]);
 
   // Create custom icon based on AQI level
   const createCustomIcon = (aqi) => {
     const color = getAQIColor(aqi);
+    // Use dark text for yellow/green (AQI 0-100), white for others
+    const textColor = aqi <= 100 ? '#000' : '#fff';
     const iconHtml = `
       <div style="
         background-color: ${color};
@@ -61,7 +141,7 @@ const AirQualityMap = ({ stations: stationsProp, onStationClick }) => {
         align-items: center;
         justify-content: center;
         font-weight: bold;
-        color: white;
+        color: ${textColor};
         font-size: 12px;
       ">
         ${Math.round(aqi)}
@@ -124,49 +204,11 @@ const AirQualityMap = ({ stations: stationsProp, onStationClick }) => {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         
-        {stations && stations.map((station, index) => (
-          <Marker
-            key={station.id || index}
-            position={[station.location?.lat || station.location?.coordinates?.[1], 
-                       station.location?.lng || station.location?.coordinates?.[0]]}
-            icon={createCustomIcon(station.aqi)}
-            eventHandlers={{
-              click: () => onStationClick && onStationClick(station)
-            }}
-          >
-            <Popup>
-              <div className="popup-content">
-                <h3>{station.name}</h3>
-                <div className="aqi-badge" style={{ backgroundColor: getAQIColor(station.aqi) }}>
-                  AQI: {Math.round(station.aqi)}
-                </div>
-                <p className="aqi-level">{getAQILevel(station.aqi).label}</p>
-                <div className="popup-details">
-                  <p><strong>PM2.5:</strong> {station.pm25} µg/m³</p>
-                  <p><strong>PM10:</strong> {station.pm10} µg/m³</p>
-                  <p><strong>CO:</strong> {station.co} ppm</p>
-                  <p><strong>Nhiệt độ:</strong> {station.temperature}°C</p>
-                  <p><strong>Độ ẩm:</strong> {station.humidity}%</p>
-                </div>
-                <p className="update-time">
-                  Cập nhật: {new Date(station.timestamp).toLocaleString('vi-VN')}
-                </p>
-                {isConnected && (
-                  <p style={{ 
-                    fontSize: '11px', 
-                    color: '#51cf66', 
-                    marginTop: '4px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px'
-                  }}>
-                    🟢 Realtime
-                  </p>
-                )}
-              </div>
-            </Popup>
-          </Marker>
-        ))}
+        <MarkerLayer 
+          stations={stations} 
+          onStationClick={onStationClick}
+          createCustomIcon={createCustomIcon}
+        />
       </MapContainer>
     </div>
   );

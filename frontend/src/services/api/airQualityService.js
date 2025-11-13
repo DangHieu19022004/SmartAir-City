@@ -26,17 +26,31 @@ import { airQualityAxios } from './axiosInstance';
 export const transformAirQualityData = (ngsiData) => {
   if (!ngsiData) return null;
 
+  // Extract location info
+  const locationCoords = ngsiData.location?.value?.coordinates || [105.852, 21.034];
+  const sensorId = ngsiData['sosa:madeBySensor'] || ngsiData.id;
+  
+  // Generate friendly name from sensor ID or location
+  const generateName = () => {
+    if (sensorId && sensorId.includes(':')) {
+      const parts = sensorId.split(':');
+      return parts[parts.length - 1].toUpperCase();
+    }
+    return `Station ${Math.round(locationCoords[1] * 100) / 100}`;
+  };
+
   return {
     // Basic info
     id: ngsiData.id,
     type: ngsiData.type,
+    name: generateName(), // Add friendly name
     
     // Location
     location: {
       type: ngsiData.location?.value?.type || 'Point',
-      coordinates: ngsiData.location?.value?.coordinates || [0, 0],
-      lat: ngsiData.location?.value?.coordinates?.[1] || 0,
-      lng: ngsiData.location?.value?.coordinates?.[0] || 0,
+      coordinates: locationCoords,
+      lat: locationCoords[1],
+      lng: locationCoords[0],
     },
     
     // Timestamp
@@ -44,7 +58,7 @@ export const transformAirQualityData = (ngsiData) => {
     timestamp: new Date(ngsiData.dateObserved?.value).getTime(),
     
     // Sensor info
-    sensor: ngsiData['sosa:madeBySensor'],
+    sensor: sensorId,
     observedProperty: ngsiData['sosa:observedProperty'],
     featureOfInterest: ngsiData['sosa:hasFeatureOfInterest'],
     
@@ -53,42 +67,46 @@ export const transformAirQualityData = (ngsiData) => {
     aqiUnitCode: ngsiData.airQualityIndex?.unitCode,
     
     // Pollutants (µg/m³)
-    pm25: ngsiData.pm25?.value || null,
-    pm10: ngsiData.pm10?.value || null,
-    o3: ngsiData.o3?.value || null,
-    no2: ngsiData.no2?.value || null,
-    so2: ngsiData.so2?.value || null,
-    co: ngsiData.co?.value || null,
+    pm25: ngsiData.pm25?.value || 0,
+    pm10: ngsiData.pm10?.value || 0,
+    o3: ngsiData.o3?.value || 0,
+    no2: ngsiData.no2?.value || 0,
+    so2: ngsiData.so2?.value || 0,
+    co: ngsiData.co?.value || 0,
+    
+    // Environmental data (with fallbacks)
+    temperature: ngsiData.temperature?.value || 25,
+    humidity: ngsiData.humidity?.value || 60,
     
     // Pollutants metadata
     pollutants: {
       pm25: {
-        value: ngsiData.pm25?.value || null,
+        value: ngsiData.pm25?.value || 0,
         unit: ngsiData.pm25?.unitCode || 'µg/m³',
         observedAt: ngsiData.pm25?.observedAt,
       },
       pm10: {
-        value: ngsiData.pm10?.value || null,
+        value: ngsiData.pm10?.value || 0,
         unit: ngsiData.pm10?.unitCode || 'µg/m³',
         observedAt: ngsiData.pm10?.observedAt,
       },
       o3: {
-        value: ngsiData.o3?.value || null,
+        value: ngsiData.o3?.value || 0,
         unit: ngsiData.o3?.unitCode || 'µg/m³',
         observedAt: ngsiData.o3?.observedAt,
       },
       no2: {
-        value: ngsiData.no2?.value || null,
+        value: ngsiData.no2?.value || 0,
         unit: ngsiData.no2?.unitCode || 'µg/m³',
         observedAt: ngsiData.no2?.observedAt,
       },
       so2: {
-        value: ngsiData.so2?.value || null,
+        value: ngsiData.so2?.value || 0,
         unit: ngsiData.so2?.unitCode || 'µg/m³',
         observedAt: ngsiData.so2?.observedAt,
       },
       co: {
-        value: ngsiData.co?.value || null,
+        value: ngsiData.co?.value || 0,
         unit: ngsiData.co?.unitCode || 'µg/m³',
         observedAt: ngsiData.co?.observedAt,
       },
@@ -124,7 +142,15 @@ export const getAll = async (limit = 50, transform = true) => {
     params: { limit }
   });
   
-  return transform ? transformAirQualityArray(data) : data;
+  console.log('📦 [airQualityService] getAll raw data:', data?.length, 'items, transform:', transform);
+  console.log('📦 [airQualityService] First item structure:', data[0]);
+  
+  const result = transform ? transformAirQualityArray(data) : data;
+  
+  console.log('✅ [airQualityService] getAll transformed data:', result?.length, 'items');
+  console.log('✅ [airQualityService] First transformed item:', result[0]);
+  
+  return result;
 };
 
 /**

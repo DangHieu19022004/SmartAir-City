@@ -1,21 +1,19 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+// © 2025 SmartAir City Team
+// Licensed under the MIT License. See LICENSE file for details.
+
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { airQualityService, airQualityWebSocket } from '../services';
 
 /**
- * Custom hook for Air Quality data with realtime WebSocket updates
- * @param {Object} options - Configuration options
- * @param {boolean} options.enableWebSocket - Enable WebSocket realtime updates (default: true)
- * @param {number} options.refreshInterval - Auto refresh interval in ms (default: null - no auto refresh)
- * @param {string} options.location - Filter by location
- * @returns {Object} Air Quality data and methods
+ * Air Quality Context - Single source of truth for air quality data
  */
-const useAirQuality = (options = {}) => {
-  const {
-    enableWebSocket = true,
-    refreshInterval = null,
-    location = null
-  } = options;
+const AirQualityContext = createContext(null);
 
+/**
+ * Air Quality Provider Component
+ * Manages global air quality state and WebSocket connection
+ */
+export const AirQualityProvider = ({ children }) => {
   // State management
   const [latestData, setLatestData] = useState([]);
   const [historicalData, setHistoricalData] = useState([]);
@@ -25,7 +23,6 @@ const useAirQuality = (options = {}) => {
   const [isConnected, setIsConnected] = useState(false);
 
   // Refs
-  const refreshTimerRef = useRef(null);
   const isMountedRef = useRef(true);
 
   /**
@@ -33,30 +30,51 @@ const useAirQuality = (options = {}) => {
    */
   const fetchLatestData = useCallback(async () => {
     try {
-      console.log('🔄 [useAirQuality] Starting fetchLatestData...');
+      console.log('🔄 [AirQualityContext] Starting fetchLatestData...');
       setIsLoading(true);
       setError(null);
       
-      const params = location ? { location } : {};
-      const data = await airQualityService.getLatestData(params);
+      const data = await airQualityService.getLatestData();
       
-      console.log('✅ [useAirQuality] fetchLatestData success:', data?.length || 0, 'records');
+      console.log('✅ [AirQualityContext] fetchLatestData success:', data?.length || 0, 'records');
+      console.log('📦 [AirQualityContext] First item structure:', data[0]);
+      console.log('📦 [AirQualityContext] Has aqi field?', data[0]?.aqi !== undefined);
+      
+      // SAFETY: Ensure data is in correct format (has aqi field)
+      // If not, it means transform failed - manually transform
+      const ensureTransformed = (items) => {
+        if (!Array.isArray(items) || items.length === 0) return items;
+        
+        // Check if first item is already transformed (has 'aqi' field)
+        if (items[0]?.aqi !== undefined) {
+          console.log('✅ [AirQualityContext] Data already transformed');
+          return items;
+        }
+        
+        // If not transformed (NGSI-LD format), transform now
+        console.log('⚠️ [AirQualityContext] Data NOT transformed, transforming now...');
+        return items.map(item => airQualityService.transformAirQualityData(item)).filter(Boolean);
+      };
+      
+      const transformedData = ensureTransformed(data);
+      console.log('✅ [AirQualityContext] Final transformed data:', transformedData?.length, 'records');
+      console.log('📦 [AirQualityContext] First transformed item:', transformedData[0]);
       
       if (isMountedRef.current) {
-        setLatestData(data);
+        setLatestData(transformedData);
       }
     } catch (err) {
-      console.error('❌ [useAirQuality] Error fetching latest data:', err);
+      console.error('❌ [AirQualityContext] Error fetching latest data:', err);
       if (isMountedRef.current) {
         setError(err.message || 'Failed to fetch air quality data');
       }
     } finally {
       if (isMountedRef.current) {
-        console.log('🏁 [useAirQuality] Setting isLoading = false');
+        console.log('🏁 [AirQualityContext] Setting isLoading = false');
         setIsLoading(false);
       }
     }
-  }, [location]);
+  }, []);
 
   /**
    * Fetch historical data for a specific location
@@ -77,7 +95,7 @@ const useAirQuality = (options = {}) => {
       
       return data;
     } catch (err) {
-      console.error('Error fetching historical data:', err);
+      console.error('❌ [AirQualityContext] Error fetching historical data:', err);
       if (isMountedRef.current) {
         setError(err.message || 'Failed to fetch historical data');
       }
@@ -94,7 +112,7 @@ const useAirQuality = (options = {}) => {
       const data = await airQualityService.getLocationData(locationId);
       return data;
     } catch (err) {
-      console.error('Error fetching location data:', err);
+      console.error('❌ [AirQualityContext] Error fetching location data:', err);
       if (isMountedRef.current) {
         setError(err.message || 'Failed to fetch location data');
       }
@@ -107,15 +125,15 @@ const useAirQuality = (options = {}) => {
    */
   const fetchAlerts = useCallback(async () => {
     try {
-      console.log('🔄 [useAirQuality] Starting fetchAlerts...');
+      console.log('🔄 [AirQualityContext] Starting fetchAlerts...');
       const data = await airQualityService.getAlerts();
-      console.log('✅ [useAirQuality] fetchAlerts success:', data?.length || 0, 'alerts');
+      console.log('✅ [AirQualityContext] fetchAlerts success:', data?.length || 0, 'alerts');
       if (isMountedRef.current) {
         setAlerts(data);
       }
       return data;
     } catch (err) {
-      console.error('❌ [useAirQuality] Error fetching alerts:', err);
+      console.error('❌ [AirQualityContext] Error fetching alerts:', err);
       throw err;
     }
   }, []);
@@ -130,36 +148,34 @@ const useAirQuality = (options = {}) => {
 
   // WebSocket event handlers
   useEffect(() => {
-    if (!enableWebSocket) return;
-
     // Handler for new data
     const handleNewData = (data) => {
-      console.log('📡 New air quality data received:', data);
+      console.log('📡 [AirQualityContext] New air quality data received:', data);
       
       if (isMountedRef.current) {
         // WebSocket sends single object, wrap in array if needed
         const dataArray = Array.isArray(data) ? data : [data];
         
         setLatestData(prevData => {
-          console.log('🔄 [useAirQuality] Updating latestData. Previous count:', prevData.length);
+          console.log('🔄 [AirQualityContext] Updating latestData. Previous count:', prevData.length);
           
-          // Update all items from WebSocket
+          // Create new array with updated data
           const updatedData = [...prevData];
           
           dataArray.forEach(newItem => {
             const index = updatedData.findIndex(item => item.id === newItem.id);
             if (index !== -1) {
               // Update existing item
-              console.log('✏️ [useAirQuality] Updating item:', newItem.id, 'AQI:', newItem.aqi);
+              console.log('✏️ [AirQualityContext] Updating item:', newItem.id, 'AQI:', newItem.aqi);
               updatedData[index] = newItem;
             } else {
               // Add new item
-              console.log('➕ [useAirQuality] Adding new item:', newItem.id, 'AQI:', newItem.aqi);
+              console.log('➕ [AirQualityContext] Adding new item:', newItem.id, 'AQI:', newItem.aqi);
               updatedData.push(newItem);
             }
           });
           
-          console.log('✅ [useAirQuality] Updated latestData. New count:', updatedData.length);
+          console.log('✅ [AirQualityContext] Updated latestData. New count:', updatedData.length);
           return updatedData;
         });
       }
@@ -167,13 +183,13 @@ const useAirQuality = (options = {}) => {
 
     // Handler for data updates
     const handleUpdate = (data) => {
-      console.log('🔄 Air quality data updated:', data);
+      console.log('🔄 [AirQualityContext] Air quality data updated:', data);
       handleNewData(data); // Same logic as new data
     };
 
     // Handler for alerts
     const handleAlert = (alert) => {
-      console.log('⚠️ New alert received:', alert);
+      console.log('⚠️ [AirQualityContext] New alert received:', alert);
       
       if (isMountedRef.current) {
         setAlerts(prevAlerts => {
@@ -187,12 +203,12 @@ const useAirQuality = (options = {}) => {
 
     // Handler for device status changes
     const handleDeviceStatus = (status) => {
-      console.log('📱 Device status changed:', status);
+      console.log('📱 [AirQualityContext] Device status changed:', status);
     };
 
     // Handler for connection status
     const handleConnectionChange = (connected) => {
-      console.log('🔌 WebSocket connection status:', connected ? 'Connected' : 'Disconnected');
+      console.log('🔌 [AirQualityContext] WebSocket connection status:', connected ? 'Connected' : 'Disconnected');
       if (isMountedRef.current) {
         setIsConnected(connected);
       }
@@ -208,11 +224,6 @@ const useAirQuality = (options = {}) => {
     // Connect WebSocket
     airQualityWebSocket.connect();
 
-    // Join location group if specified
-    if (location) {
-      airQualityWebSocket.joinLocation(location);
-    }
-
     // Cleanup
     return () => {
       airQualityWebSocket.off('newData', handleNewData);
@@ -220,40 +231,35 @@ const useAirQuality = (options = {}) => {
       airQualityWebSocket.off('alert', handleAlert);
       airQualityWebSocket.off('deviceStatusChanged', handleDeviceStatus);
       airQualityWebSocket.off('connectionChanged', handleConnectionChange);
-      
-      if (location) {
-        airQualityWebSocket.leaveLocation(location);
-      }
     };
-  }, [enableWebSocket, location]);
+  }, []);
 
   // Initial data fetch - Only run once on mount
   useEffect(() => {
-    console.log('🚀 [useAirQuality] Initial data fetch on mount');
+    console.log('🚀 [AirQualityContext] Initial data fetch on mount');
     
     // Fetch latest data
     const loadInitialData = async () => {
       try {
-        console.log('🔄 [useAirQuality] Starting initial fetchLatestData...');
+        console.log('🔄 [AirQualityContext] Starting initial fetchLatestData...');
         setIsLoading(true);
         setError(null);
         
-        const params = location ? { location } : {};
-        const data = await airQualityService.getLatestData(params);
+        const data = await airQualityService.getLatestData();
         
-        console.log('✅ [useAirQuality] Initial fetchLatestData success:', data?.length || 0, 'records');
+        console.log('✅ [AirQualityContext] Initial fetchLatestData success:', data?.length || 0, 'records');
         
         if (isMountedRef.current) {
           setLatestData(data);
         }
       } catch (err) {
-        console.error('❌ [useAirQuality] Error in initial fetch:', err);
+        console.error('❌ [AirQualityContext] Error in initial fetch:', err);
         if (isMountedRef.current) {
           setError(err.message || 'Failed to fetch air quality data');
         }
       } finally {
         if (isMountedRef.current) {
-          console.log('🏁 [useAirQuality] Setting isLoading = false');
+          console.log('🏁 [AirQualityContext] Setting isLoading = false');
           setIsLoading(false);
         }
       }
@@ -262,36 +268,20 @@ const useAirQuality = (options = {}) => {
     // Fetch alerts
     const loadAlerts = async () => {
       try {
-        console.log('🔄 [useAirQuality] Starting initial fetchAlerts...');
+        console.log('🔄 [AirQualityContext] Starting initial fetchAlerts...');
         const data = await airQualityService.getAlerts();
-        console.log('✅ [useAirQuality] Initial fetchAlerts success:', data?.length || 0, 'alerts');
+        console.log('✅ [AirQualityContext] Initial fetchAlerts success:', data?.length || 0, 'alerts');
         if (isMountedRef.current) {
           setAlerts(data);
         }
       } catch (err) {
-        console.error('❌ [useAirQuality] Error fetching alerts:', err);
+        console.error('❌ [AirQualityContext] Error fetching alerts:', err);
       }
     };
     
     loadInitialData();
     loadAlerts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty deps = only run once on mount
-
-  // Auto refresh interval
-  useEffect(() => {
-    if (refreshInterval && refreshInterval > 0) {
-      refreshTimerRef.current = setInterval(() => {
-        refresh();
-      }, refreshInterval);
-
-      return () => {
-        if (refreshTimerRef.current) {
-          clearInterval(refreshTimerRef.current);
-        }
-      };
-    }
-  }, [refreshInterval, refresh]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -300,7 +290,7 @@ const useAirQuality = (options = {}) => {
     };
   }, []);
 
-  return {
+  const value = {
     // Data
     latestData,
     historicalData,
@@ -317,10 +307,27 @@ const useAirQuality = (options = {}) => {
     getLocationData,
     fetchAlerts,
     refresh,
-    
-    // WebSocket status
-    isWebSocketEnabled: enableWebSocket,
   };
+
+  return (
+    <AirQualityContext.Provider value={value}>
+      {children}
+    </AirQualityContext.Provider>
+  );
 };
 
-export default useAirQuality;
+/**
+ * Hook to use Air Quality Context
+ * @returns {Object} Air Quality data and methods
+ */
+export const useAirQualityContext = () => {
+  const context = useContext(AirQualityContext);
+  
+  if (!context) {
+    throw new Error('useAirQualityContext must be used within AirQualityProvider');
+  }
+  
+  return context;
+};
+
+export default AirQualityContext;

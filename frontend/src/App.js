@@ -4,20 +4,19 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import Header from './components/Header';
-import StatsCards from './components/StatsCards';
-import AirQualityChart from './components/AirQualityChart'; // Updated to use hooks
-import StationComparisonChart from './components/StationComparisonChart'; // Updated to use hooks
+import AirQualityChart from './components/AirQualityChart';
 import AirQualityMap from './components/AirQualityMap';
-import AlertBanner from './components/AlertBanner';
-import APIDataViewer from './components/APIDataViewer'; // Updated to use hooks
+import RealtimeDashboard from './components/RealtimeDashboard';
+import APIDataViewer from './components/APIDataViewer';
 import About from './components/About';
 import Footer from './components/Footer';
 import LoadingSpinner from './components/LoadingSpinner';
 import ErrorMessage from './components/ErrorMessage';
-import AuthModal from './components/AuthModal'; // New
-import DeviceManagement from './components/DeviceManagement'; // Phase 8
-import UserManagement from './components/UserManagement'; // Phase 9
-import { getUser, removeToken } from './services/api/usersService'; // Auth helpers
+import AuthModal from './components/AuthModal';
+import DeviceManagement from './components/DeviceManagement';
+import UserManagement from './components/UserManagement';
+import { getUser, removeToken } from './services/api/usersService';
+import { AirQualityProvider } from './contexts/AirQualityContext';
 // import SearchFilter from './components/SearchFilter'; // TODO: Update to use hooks
 // No longer using mockData.js - all data from MSW + Hooks
 // import { downloadCSV, downloadJSON } from './utils/exportUtils'; // Tạm disabled - cần update với hooks
@@ -97,13 +96,10 @@ function App() {
               stations={stations} 
               onFilterChange={setFilteredStations}
             /> */}
-            {/* AlertBanner và StatsCards sẽ tự lấy data từ useAirQuality hook */}
-            <AlertBanner />
-            <StatsCards />
+            {/* RealtimeDashboard hiển thị dữ liệu thời gian thực */}
+            <RealtimeDashboard />
             {/* AirQualityChart sẽ tự lấy data từ useAirQuality hook */}
             <AirQualityChart />
-            {/* StationComparisonChart sẽ tự lấy data từ useAirQuality hook */}
-            <StationComparisonChart />
           </>
         );
       
@@ -122,8 +118,8 @@ function App() {
               stations={stations} 
               onFilterChange={setFilteredStations}
             /> */}
-            {/* AlertBanner và AirQualityMap sẽ tự lấy data từ useAirQuality hook */}
-            <AlertBanner />
+            {/* RealtimeDashboard và AirQualityMap sẽ tự lấy data từ context */}
+            <RealtimeDashboard />
             <AirQualityMap onStationClick={handleStationClick} />
           </>
         );
@@ -233,99 +229,101 @@ function App() {
   };
 
   return (
-    <div className="App">
-      <Header 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab}
-        user={user}
-        onLoginClick={handleLoginClick}
-        onLogout={handleLogout}
-      />
-      
-      {/* Auth Modal */}
-      <AuthModal 
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        onLoginSuccess={handleLoginSuccess}
-      />
-      
-      {/* Dark Mode Toggle Button */}
-      <button 
-        className="dark-mode-toggle" 
-        onClick={toggleDarkMode}
-        title={darkMode ? 'Chuyển sang chế độ sáng' : 'Chuyển sang chế độ tối'}
-      >
-        {darkMode ? '☀️' : '🌙'}
-      </button>
-      
-      <div className="main-content">
-        {/* Show loading state */}
-        {loading ? (
-          <LoadingSpinner 
-            message="Đang tải dữ liệu từ các trạm đo..." 
-            size="large"
-          />
-        ) : error ? (
-          /* Show error state with retry */
-          <ErrorMessage 
-            title="Lỗi tải dữ liệu"
-            message={error}
-            onRetry={handleRetry}
-            type="error"
-          />
-        ) : (
-          /* Show normal content */
-          <>
-            {/* Auto-refresh control panel */}
-            <div className="refresh-panel">
-              <div className="refresh-info">
-                <span className="refresh-text">
-                  {autoRefresh ? 'Tự động cập nhật: Bật' : 'Tự động cập nhật: Tắt'}
-                </span>
-                <span className="last-update">
-                  Cập nhật lần cuối: {formatUpdateTime()}
-                </span>
+    <AirQualityProvider>
+      <div className="App">
+        <Header 
+          activeTab={activeTab} 
+          setActiveTab={setActiveTab}
+          user={user}
+          onLoginClick={handleLoginClick}
+          onLogout={handleLogout}
+        />
+        
+        {/* Auth Modal */}
+        <AuthModal 
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          onLoginSuccess={handleLoginSuccess}
+        />
+        
+        {/* Dark Mode Toggle Button */}
+        <button 
+          className="dark-mode-toggle" 
+          onClick={toggleDarkMode}
+          title={darkMode ? 'Chuyển sang chế độ sáng' : 'Chuyển sang chế độ tối'}
+        >
+          {darkMode ? '☀️' : '🌙'}
+        </button>
+        
+        <div className="main-content">
+          {/* Show loading state */}
+          {loading ? (
+            <LoadingSpinner 
+              message="Đang tải dữ liệu từ các trạm đo..." 
+              size="large"
+            />
+          ) : error ? (
+            /* Show error state with retry */
+            <ErrorMessage 
+              title="Lỗi tải dữ liệu"
+              message={error}
+              onRetry={handleRetry}
+              type="error"
+            />
+          ) : (
+            /* Show normal content */
+            <>
+              {/* Auto-refresh control panel */}
+              <div className="refresh-panel">
+                <div className="refresh-info">
+                  <span className="refresh-text">
+                    {autoRefresh ? 'Tự động cập nhật: Bật' : 'Tự động cập nhật: Tắt'}
+                  </span>
+                  <span className="last-update">
+                    Cập nhật lần cuối: {formatUpdateTime()}
+                  </span>
+                </div>
+                
+                <div className="refresh-controls">
+                  <button 
+                    className="refresh-btn export-btn" 
+                    onClick={handleExportCSV}
+                    title="Xuất dữ liệu CSV"
+                  >
+                    CSV
+                  </button>
+                  <button 
+                    className="refresh-btn export-btn" 
+                    onClick={handleExportJSON}
+                    title="Xuất dữ liệu JSON"
+                  >
+                    JSON
+                  </button>
+                  <button 
+                    className="refresh-btn toggle-btn" 
+                    onClick={toggleAutoRefresh}
+                    title={autoRefresh ? 'Tắt tự động cập nhật' : 'Bật tự động cập nhật'}
+                  >
+                    {autoRefresh ? '⏸️ Tạm dừng' : '▶️ Kích hoạt'}
+                  </button>
+                  <button 
+                    className="refresh-btn manual-btn" 
+                    onClick={handleManualRefresh}
+                    title="Cập nhật ngay"
+                  >
+                    🔄 Cập nhật ngay
+                  </button>
+                </div>
               </div>
-              
-              <div className="refresh-controls">
-                <button 
-                  className="refresh-btn export-btn" 
-                  onClick={handleExportCSV}
-                  title="Xuất dữ liệu CSV"
-                >
-                  CSV
-                </button>
-                <button 
-                  className="refresh-btn export-btn" 
-                  onClick={handleExportJSON}
-                  title="Xuất dữ liệu JSON"
-                >
-                  JSON
-                </button>
-                <button 
-                  className="refresh-btn toggle-btn" 
-                  onClick={toggleAutoRefresh}
-                  title={autoRefresh ? 'Tắt tự động cập nhật' : 'Bật tự động cập nhật'}
-                >
-                  {autoRefresh ? '⏸️ Tạm dừng' : '▶️ Kích hoạt'}
-                </button>
-                <button 
-                  className="refresh-btn manual-btn" 
-                  onClick={handleManualRefresh}
-                  title="Cập nhật ngay"
-                >
-                  🔄 Cập nhật ngay
-                </button>
-              </div>
-            </div>
 
-            {renderContent()}
-          </>
-        )}
+              {renderContent()}
+            </>
+          )}
+        </div>
+        
+        <Footer />
       </div>
-      
-      <Footer />
-    </div>
+    </AirQualityProvider>
   );
 }
 

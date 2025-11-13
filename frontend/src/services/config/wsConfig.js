@@ -12,7 +12,7 @@
 // ============================================
 // ENVIRONMENT VARIABLES
 // ============================================
-const AIR_WS_BASE_URL = process.env.REACT_APP_AIR_WS_URL || 'ws://localhost:5182';
+const AIR_WS_BASE_URL = process.env.REACT_APP_AIR_WS_URL || 'http://3.27.249.236:51762';
 const ENABLE_WEBSOCKET = process.env.REACT_APP_ENABLE_WEBSOCKET === 'true';
 const WS_RECONNECT_INTERVAL = parseInt(process.env.REACT_APP_WS_RECONNECT_INTERVAL) || 5000;
 const DEBUG_MODE = process.env.REACT_APP_DEBUG_MODE === 'true';
@@ -26,8 +26,8 @@ const DEBUG_MODE = process.env.REACT_APP_DEBUG_MODE === 'true';
  * Real-time air quality data updates
  */
 export const WS_ENDPOINTS = {
-  // SignalR Hub URL (ASP.NET Core standard pattern)
-  AIR_QUALITY_HUB: `${AIR_WS_BASE_URL}/hubs/airquality`,
+  // SignalR Hub URL (Backend endpoint)
+  AIR_QUALITY_HUB: `${AIR_WS_BASE_URL}/airqualityhub`,
   
   // Alternative: If backend uses simple WebSocket (not SignalR)
   AIR_QUALITY_WS: `${AIR_WS_BASE_URL}/api/airquality`,
@@ -44,8 +44,8 @@ export const WS_ENDPOINTS = {
 export const WS_EVENTS = {
   // Air Quality events
   AIR_QUALITY: {
-    NEW_DATA: 'ReceiveAirQualityUpdate',
-    UPDATE: 'ReceiveAirQualityUpdate', // Same as NEW_DATA
+    NEW_DATA: 'NewAirQualityData',  // ✅ Fixed: Match backend event name
+    UPDATE: 'NewAirQualityData',     // Same as NEW_DATA
     LATEST_DATA: 'ReceiveLatestData',
     ALERT: 'ReceiveAlert',
     SUBSCRIBE: 'SubscribeToAirQuality',
@@ -113,13 +113,22 @@ export const WS_CONFIG = {
 // ============================================
 
 /**
- * Get WebSocket URL based on protocol
- * Converts http:// to ws:// and https:// to wss://
- * @param {string} httpUrl - HTTP URL
- * @returns {string} - WebSocket URL
+ * Get WebSocket URL for a specific endpoint
+ * @param {string} endpointName - Name of endpoint ('airQuality')
+ * @returns {string} - Full SignalR Hub URL
  */
-export const getWebSocketUrl = (httpUrl) => {
-  return httpUrl.replace(/^http/, 'ws');
+export const getWebSocketUrl = (endpointName) => {
+  // Map endpoint names to WS_ENDPOINTS
+  const endpointMap = {
+    'airQuality': WS_ENDPOINTS.AIR_QUALITY_HUB,
+    'airQualityHub': WS_ENDPOINTS.AIR_QUALITY_HUB,
+  };
+  
+  const url = endpointMap[endpointName] || WS_ENDPOINTS.AIR_QUALITY_HUB;
+  
+  console.log(`[wsConfig] getWebSocketUrl('${endpointName}') => ${url}`);
+  
+  return url;
 };
 
 /**
