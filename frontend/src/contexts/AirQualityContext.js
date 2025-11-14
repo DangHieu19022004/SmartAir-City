@@ -281,6 +281,8 @@ export const AirQualityProvider = ({ children }) => {
     
     loadInitialData();
     loadAlerts();
+    
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty deps = only run once on mount
 
   // Cleanup on unmount

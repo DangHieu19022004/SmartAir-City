@@ -15,21 +15,72 @@ import {
 import { useAirQualityContext } from "../contexts/AirQualityContext";
 import "./AirQualityChart.css";
 
+// localStorage key for chart data persistence
+const CHART_DATA_KEY = 'smartair_chart_data';
+const CHART_TIMESTAMP_KEY = 'smartair_chart_timestamp';
+const CACHE_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
+
 /**
  * Air Quality Chart Component
  * Displays real-time trends of AQI and pollutants
  */
 const AirQualityChart = () => {
   const { latestData, isConnected } = useAirQualityContext();
-  const [chartData, setChartData] = useState([]);
+  
+  // Load chart data from localStorage on mount (with expiry check)
+  const loadChartData = () => {
+    try {
+      const savedTimestamp = localStorage.getItem(CHART_TIMESTAMP_KEY);
+      const saved = localStorage.getItem(CHART_DATA_KEY);
+      
+      if (!saved || !savedTimestamp) return [];
+      
+      // Check if cache expired (older than 10 minutes)
+      const age = Date.now() - parseInt(savedTimestamp);
+      if (age > CACHE_EXPIRY_MS) {
+        console.log('📊 [Chart] Cache expired, starting fresh');
+        localStorage.removeItem(CHART_DATA_KEY);
+        localStorage.removeItem(CHART_TIMESTAMP_KEY);
+        return [];
+      }
+      
+      console.log('📊 [Chart] Loading cached data:', JSON.parse(saved).length, 'points');
+      return JSON.parse(saved);
+    } catch (error) {
+      console.error('Failed to load chart data from localStorage:', error);
+      return [];
+    }
+  };
+  
+  const [chartData, setChartData] = useState(loadChartData());
   const [maxDataPoints] = useState(20); // Keep last 20 data points
+
+  // Save chart data to localStorage whenever it changes
+  useEffect(() => {
+    if (chartData.length > 0) {
+      try {
+        localStorage.setItem(CHART_DATA_KEY, JSON.stringify(chartData));
+        localStorage.setItem(CHART_TIMESTAMP_KEY, Date.now().toString());
+      } catch (error) {
+        console.error('Failed to save chart data to localStorage:', error);
+      }
+    }
+  }, [chartData]);
 
   // Update chart data when new data arrives
   useEffect(() => {
-    if (!latestData || latestData.length === 0) return;
+    if (!latestData || latestData.length === 0) {
+      console.log('📊 [Chart] No latestData available');
+      return;
+    }
 
     // Get the most recent station data
     const station = latestData[0];
+    console.log('📊 [Chart] New data received:', {
+      aqi: station.aqi,
+      timestamp: station.timestamp,
+      dateObserved: station.dateObserved
+    });
 
     const newDataPoint = {
       time: new Date(
@@ -50,14 +101,18 @@ const AirQualityChart = () => {
     };
 
     setChartData((prevData) => {
-      // Avoid duplicates by checking timestamp
-      const lastPoint = prevData[prevData.length - 1];
-      if (lastPoint && lastPoint.timestamp === newDataPoint.timestamp) {
+      // Check if this data point already exists in the array
+      const isDuplicate = prevData.some(point => point.timestamp === newDataPoint.timestamp);
+      
+      if (isDuplicate) {
+        console.log('📊 [Chart] Duplicate timestamp detected, skipping:', newDataPoint.timestamp);
         return prevData;
       }
 
       // Add new point and keep only last N points
       const updatedData = [...prevData, newDataPoint].slice(-maxDataPoints);
+      console.log('📊 [Chart] ✅ Added new data point! Total:', updatedData.length, 'points');
+      console.log('📊 [Chart] Latest AQI:', newDataPoint.AQI, 'at', newDataPoint.time);
       return updatedData;
     });
   }, [latestData, maxDataPoints]);
@@ -80,11 +135,28 @@ const AirQualityChart = () => {
     return null;
   };
 
+  // Clear chart cache
+  const handleClearCache = () => {
+    localStorage.removeItem(CHART_DATA_KEY);
+    localStorage.removeItem(CHART_TIMESTAMP_KEY);
+    setChartData([]);
+    console.log('📊 [Chart] Cache cleared, restarting...');
+  };
+
   return (
     <div className="chart-container">
       <div className="chart-header">
         <h3>Biểu đồ theo dõi chất lượng không khí</h3>
-        {isConnected && <span className="realtime-indicator">🟢 Realtime</span>}
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          {isConnected && <span className="realtime-indicator">🟢 Realtime</span>}
+          <button 
+            onClick={handleClearCache} 
+            className="btn-clear-cache"
+            title="Xóa cache và khởi động lại biểu đồ"
+          >
+            🗑️ Clear
+          </button>
+        </div>
       </div>
 
       {chartData.length === 0 ? (
