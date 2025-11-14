@@ -156,7 +156,7 @@ const DeviceManagement = () => {
       {/* Header */}
       <div className="device-management-header">
         <div className="header-left">
-          <h1>📡 Quản lý Thiết bị IoT</h1>
+          <h1>Quản lý Thiết bị IoT</h1>
           <p className="subtitle">Quản lý và giám sát tất cả các cảm biến chất lượng không khí</p>
         </div>
         <div className="header-actions">
@@ -178,42 +178,10 @@ const DeviceManagement = () => {
         </div>
       </div>
 
-      {/* Statistics Cards */}
-      <div className="device-stats">
-        <div className="stat-card">
-          <div className="stat-icon">📊</div>
-          <div className="stat-content">
-            <div className="stat-value">{stats.total}</div>
-            <div className="stat-label">Tổng thiết bị</div>
-          </div>
-        </div>
-        <div className="stat-card stat-success">
-          <div className="stat-icon">✅</div>
-          <div className="stat-content">
-            <div className="stat-value">{stats.active}</div>
-            <div className="stat-label">Đang hoạt động</div>
-          </div>
-        </div>
-        <div className="stat-card stat-warning">
-          <div className="stat-icon">⚠️</div>
-          <div className="stat-content">
-            <div className="stat-value">{stats.inactive}</div>
-            <div className="stat-label">Không hoạt động</div>
-          </div>
-        </div>
-        <div className="stat-card stat-info">
-          <div className="stat-icon">🌐</div>
-          <div className="stat-content">
-            <div className="stat-value">{stats.online}</div>
-            <div className="stat-label">Trực tuyến</div>
-          </div>
-        </div>
-      </div>
-
       {/* Filters */}
       <div className="device-filters">
         <div className="filter-group">
-          <label htmlFor="search">🔍 Tìm kiếm:</label>
+          <label htmlFor="search">Tìm kiếm:</label>
           <input
             id="search"
             type="text"
@@ -225,7 +193,7 @@ const DeviceManagement = () => {
         </div>
         
         <div className="filter-group">
-          <label htmlFor="status-filter">📊 Trạng thái:</label>
+          <label htmlFor="status-filter">Trạng thái:</label>
           <select
             id="status-filter"
             value={statusFilter}

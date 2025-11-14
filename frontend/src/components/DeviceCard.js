@@ -22,26 +22,7 @@ const DeviceCard = ({ device, onToggleStatus, onViewDetails, onDelete }) => {
     // Fallback
     return 'N/A';
   };
-
-  // // Format last seen time
-  // const formatLastSeen = (dateString) => {
-  //   if (!dateString) return 'Chưa có dữ liệu';
-    
-  //   const date = new Date(dateString);
-  //   const now = new Date();
-  //   const diffMs = now - date;
-  //   const diffMins = Math.floor(diffMs / 60000);
-    
-  //   if (diffMins < 1) return 'Vừa xong';
-  //   if (diffMins < 60) return `${diffMins} phút trước`;
-    
-  //   const diffHours = Math.floor(diffMins / 60);
-  //   if (diffHours < 24) return `${diffHours} giờ trước`;
-    
-  //   const diffDays = Math.floor(diffHours / 24);
-  //   return `${diffDays} ngày trước`;
-  // };
-
+  
   // Get status badge
   const getStatusBadge = (status) => {
     const statusMap = {
@@ -101,32 +82,32 @@ const DeviceCard = ({ device, onToggleStatus, onViewDetails, onDelete }) => {
 
         {/* Device Type */}
         <div className="device-field">
-          <span className="field-label">🔧 Loại:</span>
+          <span className="field-label">Loại:</span>
           <span className="field-value">{displayType}</span>
         </div>
 
         {/* Observed Property */}
         <div className="device-field">
-          <span className="field-label">📊 Đo đạc:</span>
+          <span className="field-label">Đo đạc:</span>
           <span className="field-value">{displayObservedProperty}</span>
         </div>
 
         {/* Feature of Interest */}
         <div className="device-field">
-          <span className="field-label">🌍 Khu vực:</span>
+          <span className="field-label">Khu vực:</span>
           <span className="field-value">{displayFeatureOfInterest.split(':').pop()}</span>
         </div>
 
         {/* Location */}
         <div className="device-field">
-          <span className="field-label">📍 Tọa độ:</span>
+          <span className="field-label">Tọa độ:</span>
           <span className="field-value">{formatLocation(device.location)}</span>
         </div>
 
         {/* Description */}
         {device.description && (
           <div className="device-field device-description">
-            <span className="field-label">📝 Mô tả:</span>
+            <span className="field-label">Mô tả:</span>
             <p className="field-value">{device.description}</p>
           </div>
         )}
@@ -139,21 +120,21 @@ const DeviceCard = ({ device, onToggleStatus, onViewDetails, onDelete }) => {
           onClick={() => onToggleStatus(device)}
           title={device.status === 'active' ? 'Tắt thiết bị' : 'Bật thiết bị'}
         >
-          {device.status === 'active' ? '⏸️ Tắt' : '▶️ Bật'}
+          {device.status === 'active' ? 'Tắt' : 'Bật'}
         </button>
         <button 
           className="btn btn-view"
           onClick={() => onViewDetails(device)}
           title="Xem chi tiết thiết bị"
         >
-          👁️ Xem
+          Xem
         </button>
         <button 
           className="btn btn-delete"
           onClick={onDelete}
           title="Xóa thiết bị"
         >
-          🗑️ Xóa
+          Xóa
         </button>
       </div>
     </div>
