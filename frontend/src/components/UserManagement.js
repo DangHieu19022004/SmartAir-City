@@ -163,7 +163,7 @@ const UserManagement = () => {
       {/* Header */}
       <div className="user-management-header">
         <div className="header-left">
-          <h1>👥 Quản lý Người dùng</h1>
+          <h1>Quản lý Người dùng</h1>
           <p className="subtitle">Quản lý tài khoản và phân quyền người dùng</p>
         </div>
         <div className="header-actions">
@@ -173,7 +173,7 @@ const UserManagement = () => {
             disabled={isLoading || users.length === 0}
             title="Gửi email hàng loạt cho tất cả người dùng"
           >
-            📧 Gửi email hàng loạt
+            Gửi email hàng loạt
           </button>
         </div>
       </div>
@@ -181,31 +181,21 @@ const UserManagement = () => {
       {/* Statistics Cards */}
       <div className="user-stats">
         <div className="stat-card">
-          <div className="stat-icon">👥</div>
           <div className="stat-content">
             <div className="stat-value">{stats.total}</div>
             <div className="stat-label">Tổng người dùng</div>
           </div>
         </div>
         <div className="stat-card stat-admin">
-          <div className="stat-icon">👑</div>
           <div className="stat-content">
             <div className="stat-value">{stats.admins}</div>
             <div className="stat-label">Quản trị viên</div>
           </div>
         </div>
         <div className="stat-card stat-user">
-          <div className="stat-icon">👤</div>
           <div className="stat-content">
             <div className="stat-value">{stats.regularUsers}</div>
             <div className="stat-label">Người dùng</div>
-          </div>
-        </div>
-        <div className="stat-card stat-success">
-          <div className="stat-icon">✅</div>
-          <div className="stat-content">
-            <div className="stat-value">{stats.active}</div>
-            <div className="stat-label">Đang hoạt động</div>
           </div>
         </div>
       </div>
@@ -213,7 +203,7 @@ const UserManagement = () => {
       {/* Filters */}
       <div className="user-filters">
         <div className="filter-group">
-          <label htmlFor="search">🔍 Tìm kiếm:</label>
+          <label htmlFor="search">Tìm kiếm:</label>
           <input
             id="search"
             type="text"
@@ -225,7 +215,7 @@ const UserManagement = () => {
         </div>
         
         <div className="filter-group">
-          <label htmlFor="role-filter">👤 Vai trò:</label>
+          <label htmlFor="role-filter">Vai trò:</label>
           <select
             id="role-filter"
             value={roleFilter}

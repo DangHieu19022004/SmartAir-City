@@ -9,7 +9,7 @@ const About = () => {
   return (
     <div className="about-page">
       <div className="about-hero">
-        <h1>🌿 SmartAir City</h1>
+        <h1>SmartAir City</h1>
         <p className="tagline">IoT Platform for Smart City Air Quality Monitoring</p>
       </div>
 

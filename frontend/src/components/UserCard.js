@@ -75,28 +75,28 @@ const UserCard = ({ user, onSendEmail, onDelete }) => {
 
         {/* Email */}
         <div className="user-field">
-          <span className="field-label">📧 Email:</span>
+          <span className="field-label">Email:</span>
           <span className="field-value">{user.email || 'N/A'}</span>
         </div>
 
         {/* Phone */}
         {user.phone && (
           <div className="user-field">
-            <span className="field-label">📱 Điện thoại:</span>
+            <span className="field-label">Điện thoại:</span>
             <span className="field-value">{user.phone}</span>
           </div>
         )}
 
         {/* Created Date */}
         <div className="user-field">
-          <span className="field-label">📅 Ngày tạo:</span>
+          <span className="field-label">Ngày tạo:</span>
           <span className="field-value">{formatDate(user.createdAt)}</span>
         </div>
 
         {/* Last Login */}
         {user.lastLogin && (
           <div className="user-field">
-            <span className="field-label">🕐 Đăng nhập:</span>
+            <span className="field-label">Đăng nhập:</span>
             <span className="field-value">{formatDate(user.lastLogin)}</span>
           </div>
         )}
@@ -117,14 +117,14 @@ const UserCard = ({ user, onSendEmail, onDelete }) => {
           onClick={onSendEmail}
           title="Gửi email cho người dùng"
         >
-          📧 Gửi email
+          Gửi email
         </button>
         <button 
           className="btn btn-delete"
           onClick={onDelete}
           title="Xóa người dùng"
         >
-          🗑️ Xóa
+          Xóa
         </button>
       </div>
     </div>
