@@ -3,12 +3,13 @@
 
 import React from 'react';
 import './About.css';
+import { Activity, BarChart3, AlertTriangle, Link2 } from "lucide-react";
 
 const About = () => {
   return (
     <div className="about-page">
       <div className="about-hero">
-        <h1>🌿 SmartAir City</h1>
+        <h1>SmartAir City</h1>
         <p className="tagline">IoT Platform for Smart City Air Quality Monitoring</p>
       </div>
 
@@ -24,32 +25,34 @@ const About = () => {
           </p>
         </section>
 
-        {/* Goals Section */}
         <section className="about-section">
-          <h2>Goals</h2>
-          <div className="features-grid">
-            <div className="feature-card">
-              <div className="feature-icon">🔍</div>
-              <h3>Real-time Monitoring</h3>
-              <p>24/7 air quality tracking with continuous data updates</p>
-            </div>
-            <div className="feature-card">
-              <div className="feature-icon">📊</div>
-              <h3>Data Analysis</h3>
-              <p>Visual charts for trends and area comparisons</p>
-            </div>
-            <div className="feature-card">
-              <div className="feature-icon">⚠️</div>
-              <h3>Smart Alerts</h3>
-              <p>Color-coded warning system when air quality exceeds thresholds</p>
-            </div>
-            <div className="feature-card">
-              <div className="feature-icon">🔗</div>
-              <h3>Open Standards</h3>
-              <p>NGSI-LD compliance for integration and scalability</p>
-            </div>
-          </div>
-        </section>
+  <h2>Goals</h2>
+  <div className="features-grid">
+    <div className="feature-card">
+      <Activity className="feature-icon" />
+      <h3>Real-time Monitoring</h3>
+      <p>24/7 air quality tracking with continuous data updates</p>
+    </div>
+
+    <div className="feature-card">
+      <BarChart3 className="feature-icon" />
+      <h3>Data Analysis</h3>
+      <p>Visual charts for trends and area comparisons</p>
+    </div>
+
+    <div className="feature-card">
+      <AlertTriangle className="feature-icon" />
+      <h3>Smart Alerts</h3>
+      <p>Color-coded warning system when air quality exceeds thresholds</p>
+    </div>
+
+    <div className="feature-card">
+      <Link2 className="feature-icon" />
+      <h3>Open Standards</h3>
+      <p>NGSI-LD compliance for integration and scalability</p>
+    </div>
+  </div>
+</section>
 
         {/* Technology Stack */}
         <section className="about-section">

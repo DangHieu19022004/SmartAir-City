@@ -1,5 +1,6 @@
 //  SPDX-License-Identifier: MIT
 //  © 2025 SmartAir City Team
+ 
 //  This source code is licensed under the MIT license found in the
 //  LICENSE file in the root directory of this source tree.
 using MongoDB.Bson;
@@ -66,7 +67,7 @@ public class AirQuality
 {
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
-    [JsonIgnore] // ❌ Không hiển thị MongoId ra JSON NGSI-LD
+    [JsonIgnore] // Không hiển thị MongoId ra JSON NGSI-LD
     public string? MongoId { get; set; }
 
     [BsonElement("id")]

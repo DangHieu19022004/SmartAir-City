@@ -2,252 +2,141 @@
 // Licensed under the MIT License. See LICENSE file for details.
 
 import React, { useState } from "react";
+import { useAirQualityContext } from "../contexts/AirQualityContext";
 import "./APIDataViewer.css";
 
-const APIDataViewer = ({ stations }) => {
-  const [selectedStation, setSelectedStation] = useState(null);
-  const [viewMode, setViewMode] = useState("raw"); // 'raw' or 'ngsi-ld'
+/**
+ * API Data Viewer Component
+ * Displays raw Air Quality API data for developers
+ * Shows only ONE sample record (not realtime)
+ */
+const APIDataViewer = () => {
+  const [showRaw, setShowRaw] = useState(false);
 
-  // Convert station data to NGSI-LD format
-  const convertToNGSILD = (station) => {
-    return {
-      "@context": [
-        "https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld",
-        {
-          AirQualityObserved:
-            "https://smartdatamodels.org/dataModel.Environment/AirQualityObserved",
-          fiware: "https://fiware.github.io/data-models/context.jsonld",
-        },
-      ],
-      id: `urn:ngsi-ld:AirQualityObserved:${station.id}`,
-      type: "AirQualityObserved",
-      dateObserved: {
-        type: "Property",
-        value: {
-          "@type": "DateTime",
-          "@value": station.timestamp,
-        },
-      },
-      location: {
-        type: "GeoProperty",
-        value: {
-          type: "Point",
-          coordinates: [station.location.lng, station.location.lat],
-        },
-      },
-      address: {
-        type: "Property",
-        value: {
-          addressLocality: station.name,
-          addressCountry: "Vietnam",
-        },
-      },
-      airQualityIndex: {
-        type: "Property",
-        value: station.aqi,
-        unitCode: "AQI",
-      },
-      pm25: {
-        type: "Property",
-        value: station.pm25,
-        unitCode: "GQ",
-      },
-      pm10: {
-        type: "Property",
-        value: station.pm10,
-        unitCode: "GQ",
-      },
-      co: {
-        type: "Property",
-        value: station.co,
-        unitCode: "GP",
-      },
-      temperature: {
-        type: "Property",
-        value: station.temperature,
-        unitCode: "CEL",
-      },
-      relativeHumidity: {
-        type: "Property",
-        value: station.humidity,
-        unitCode: "P1",
-      },
-      source: {
-        type: "Property",
-        value: "IoT Sensor MQ135",
-      },
-      dataProvider: {
-        type: "Property",
-        value: "SmartAir City Platform",
-      },
-    };
+  // Get data from Air Quality context (shared state)
+  const {
+    latestData: airQualityData,
+    isLoading,
+    error,
+  } = useAirQualityContext();
+
+  // Get ONLY the first record as a sample for developers
+  const sampleData = airQualityData?.length > 0 ? [airQualityData[0]] : [];
+
+  // Clean data for display - remove transformation artifacts
+  const cleanData = (data) => {
+    if (!Array.isArray(data)) return data;
+    
+    return data.map(item => {
+      // If showing raw NGSI-LD format
+      if (showRaw && item._raw) {
+        return item._raw;
+      }
+      
+      // Show cleaned transformed data (remove nested pollutants and _raw)
+      const { pollutants, _raw, ...cleanItem } = item;
+      
+      // Remove temperature/humidity if they are default fallback values
+      if (cleanItem.temperature === 25 && cleanItem.humidity === 60) {
+        delete cleanItem.temperature;
+        delete cleanItem.humidity;
+      }
+      
+      return cleanItem;
+    });
   };
 
-  // Copy JSON to clipboard
-  const copyToClipboard = () => {
-    if (!selectedStation) return;
-
-    const jsonData =
-      viewMode === "ngsi-ld"
-        ? JSON.stringify(convertToNGSILD(selectedStation), null, 2)
-        : JSON.stringify(selectedStation, null, 2);
-
-    navigator.clipboard.writeText(jsonData);
-    alert("Đã sao chép JSON vào clipboard!");
-  };
+  const displayData = cleanData(sampleData);
 
   return (
     <div className="api-data-viewer">
-      <div className="api-header">
-        <h2>📡 API Data - NGSI-LD Format</h2>
-        <p className="api-description">
-          Dữ liệu từ các trạm giám sát được chuẩn hóa theo NGSI-LD Context
-          Information Management, tương thích với nền tảng FIWARE cho thành phố
-          thông minh.
-        </p>
+      {/* Header */}
+      <div className="page-header">
+        <h2>API Data Viewer</h2>
       </div>
 
-      <div className="api-content">
-        {/* Station selector */}
-        <div className="station-selector">
-          <h3>Chọn trạm đo</h3>
-          <div className="station-list">
-            {stations.map((station) => (
+      {/* Error Display */}
+      {error && (
+        <div className="error-box">
+          <h4>❌ Error Loading Data</h4>
+          <p>{error}</p>
+        </div>
+      )}
+
+      {/* Loading Display */}
+      {isLoading && (
+        <div className="loading-box">
+          <div className="spinner"></div>
+          <p>Loading data...</p>
+        </div>
+      )}
+
+      {/* Data Display */}
+      {!isLoading && !error && (
+        <div className="data-display">
+          <div className="data-header">
+            <h3>Sample JSON Data (1 Record)</h3>
+            <div className="data-actions">
               <button
-                key={station.id}
-                className={`station-button ${
-                  selectedStation?.id === station.id ? "active" : ""
-                }`}
-                onClick={() => setSelectedStation(station)}
+                className={`btn-toggle ${showRaw ? 'active' : ''}`}
+                onClick={() => setShowRaw(!showRaw)}
               >
-                <div className="station-name">{station.name}</div>
-                <div className="station-aqi">
-                  AQI: {Math.round(station.aqi)}
-                </div>
+                {showRaw ? '📋 Show Transformed' : '🔍 Show NGSI-LD'}
               </button>
-            ))}
+              <button
+                className="btn-copy"
+                onClick={() => {
+                  navigator.clipboard.writeText(
+                    JSON.stringify(displayData, null, 2)
+                  );
+                  alert("Đã copy JSON vào clipboard!");
+                }}
+              >
+                📋 Copy JSON
+              </button>
+              <button
+                className="btn-download"
+                onClick={() => {
+                  const blob = new Blob(
+                    [JSON.stringify(displayData, null, 2)],
+                    { type: "application/json" }
+                  );
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `sample-airquality-${Date.now()}.json`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }}
+              >
+                💾 Download JSON
+              </button>
+            </div>
+          </div>
+
+          {displayData.length > 0 ? (
+            <pre className="json-viewer">
+              <code>{JSON.stringify(displayData, null, 2)}</code>
+            </pre>
+          ) : (
+            <div className="no-data-box">
+              <p>⚠️ Không có dữ liệu mẫu</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* API Endpoints Reference */}
+      <div className="api-reference">
+        <h3>Air Quality API Endpoints</h3>
+        <div className="endpoint-grid">
+          <div className="endpoint-card">
+            <h4>Air Quality API</h4>
+            <code>GET /api/airquality</code>
+            <code>GET /api/airquality/latest</code>
+            <code>GET /api/airquality/history</code>
           </div>
         </div>
-
-        {/* Data display */}
-        {selectedStation && (
-          <div className="data-display">
-            <div className="data-controls">
-              <button
-                className={`view-toggle ${viewMode === "raw" ? "active" : ""}`}
-                onClick={() => setViewMode("raw")}
-              >
-                📊 Raw Data
-              </button>
-              <button
-                className={`view-toggle ${
-                  viewMode === "ngsi-ld" ? "active" : ""
-                }`}
-                onClick={() => setViewMode("ngsi-ld")}
-              >
-                🔗 NGSI-LD
-              </button>
-              <button className="copy-button" onClick={copyToClipboard}>
-                📋 Copy
-              </button>
-            </div>
-
-            {viewMode === "raw" ? (
-              <div className="raw-data">
-                <h3>Station Data: {selectedStation.name}</h3>
-                <table className="data-table">
-                  <tbody>
-                    <tr>
-                      <td>
-                        <strong>ID:</strong>
-                      </td>
-                      <td>{selectedStation.id}</td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <strong>Location:</strong>
-                      </td>
-                      <td>
-                        {selectedStation.location.lat},{" "}
-                        {selectedStation.location.lng}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <strong>AQI:</strong>
-                      </td>
-                      <td className="aqi-value">
-                        {Math.round(selectedStation.aqi)}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <strong>PM2.5:</strong>
-                      </td>
-                      <td>{selectedStation.pm25} µg/m³</td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <strong>PM10:</strong>
-                      </td>
-                      <td>{selectedStation.pm10} µg/m³</td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <strong>CO:</strong>
-                      </td>
-                      <td>{selectedStation.co} ppm</td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <strong>Temperature:</strong>
-                      </td>
-                      <td>{selectedStation.temperature}°C</td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <strong>Humidity:</strong>
-                      </td>
-                      <td>{selectedStation.humidity}%</td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <strong>Timestamp:</strong>
-                      </td>
-                      <td>
-                        {new Date(selectedStation.timestamp).toLocaleString(
-                          "vi-VN"
-                        )}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="json-ld-view">
-                <h3>NGSI-LD Format</h3>
-                <pre className="json-code">
-                  {JSON.stringify(convertToNGSILD(selectedStation), null, 2)}
-                </pre>
-              </div>
-            )}
-
-            <div className="api-info">
-              <h4>📘 About NGSI-LD</h4>
-              <p>
-                <strong>NGSI-LD</strong> is a standardized API for context
-                information management in IoT and smart city systems. Developed
-                by ETSI and widely used in the FIWARE platform.
-              </p>
-              <ul>
-                <li>✅ Standardized interaction between systems</li>
-                <li>✅ Support for Linked Data and Semantic Web</li>
-                <li>✅ Real-time data management</li>
-                <li>✅ Integration with Context Broker (Orion-LD)</li>
-              </ul>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
