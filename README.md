@@ -23,17 +23,6 @@ SmartAir City is an IoT-based platform designed to monitor urban air quality met
 ### Frontend
 - React 19.2.0
 
-## System Requirements
-
-- .NET 8.0 SDK or later
-- MongoDB 4.4 or later
-- Node.js 16.x or later
-- npm or yarn package manager
-
-For Docker deployment:
-- Docker 20.10+
-- Docker Compose 2.0+
-
 ## Project Structure
 ```
 SmartAir-City/
@@ -250,10 +239,40 @@ SmartAir-City/
 
 ```
 
-### 1. Clone the project
+## Usage
+### System Requirements
+
+- .NET 8.0 SDK or later
+- MongoDB 4.4 or later
+- Node.js 16.x or later
+- npm or yarn package manager
+
+For Docker deployment:
+- Docker 20.10+
+- Docker Compose 2.0+
+### Clone dự án
 ```bash
+#Clone project
 git clone https://github.com/lequang2009k4/SmartAir-City.git
+#Di chuyển thư mục dự án
 cd SmartAir-City
+```
+Clone project
+: git clone https://github.com/lequang2009k4/SmartAir-City.git
+
+#### Manual
+```bash
+----------------Backend-----------------
+###SmartAirCity###
+cd backend/SmartAirCity
+###SmartAirCore###
+#Di chuyển đến thư mục dự án
+cd ..
+cd backend/SmartAirCore
+#
+----------------Frontend----------------
+```
+#### Docker
 
 
 1. Navigate to the backend directory:
