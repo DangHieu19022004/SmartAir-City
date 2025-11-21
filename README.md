@@ -240,8 +240,7 @@ SmartAir-City/
 │   ├── .env.production                       # Production environment variables
 │   ├── Dockerfile                            # Dockerfile
 │   ├── package.json                          # NPM dependencies and scripts
-│   ├── package-lock.json                     # NPM lock file
-│   └── README.md                             # Frontend README
+│   └── package-lock.json                     # NPM lock file
 │
 ├── CHANGELOG.md                              # Project changelog
 ├── CONTRIBUTING.md                           # Contribution guidelines
