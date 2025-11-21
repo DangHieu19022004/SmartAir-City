@@ -2,6 +2,7 @@
 #   SmartAir City – IoT Platform for Urban Air Quality Monitoring
 #   based on NGSI-LD and FiWARE Standards
 #
+#   SPDX-License-Identifier: MIT
 #   @version    0.1.x
 #   @author     SmartAir City Team <smartaircity@gmail.com>
 #   @copyright  © 2025 SmartAir City Team. 
