@@ -17,13 +17,16 @@ SmartAir City is an IoT-based platform designed to monitor urban air quality met
 ## Technology Stack
 
 ### Backend
+
 - ASP.NET Core 8.0
 - MongoDB 3.5.0
 
 ### Frontend
+
 - React 19.2.0
 
 ## Project Structure
+
 ```
 SmartAir-City/
 │
@@ -240,19 +243,22 @@ SmartAir-City/
 └── README.md                                 # Main project README
 
 ```
+
 ## Usage
 
 ### 1. System Requirements
 
 **Local Development**
-- .NET 8.0 SDK or later  
-- MongoDB 4.4 or later  
-- Node.js 16.x or later  
-- npm or yarn package manager  
+
+- .NET 8.0 SDK or later
+- MongoDB 4.4 or later
+- Node.js 16.x or later
+- npm or yarn package manager
 
 **For Docker Deployment**
-- Docker 20.10+  
-- Docker Compose 2.0+  
+
+- Docker 20.10+
+- Docker Compose 2.0+
 
 ---
 
@@ -321,7 +327,7 @@ dotnet restore
 dotnet run
 ```
 
-API available at: **http://localhost:5182/swagger**
+API available at: **http://localhost:51872/swagger**
 
 ---
 
@@ -406,11 +412,11 @@ docker ps
 
 You should see:
 
-| Service              | Port  |
-|----------------------|-------|
-| smartaircity-api     | 5182  |
-| smartcity-core       | 8080  |
-| smartcity-frontend   | 3000  |
+| Service            | Port  |
+| ------------------ | ----- |
+| smartaircity-api   | 51872 |
+| smartcity-core     | 8080  |
+| smartcity-frontend | 3000  |
 
 ---
 
@@ -423,33 +429,40 @@ This API provides simple public access to real-time and historical air quality d
 ---
 
 ### 1. GET `/airquality`
+
 Retrieve a list of air quality records.
 
 **Query Parameters (optional):**
-- `limit` — number of records to return  
-- `stationId` — filter by station  
-- `order` — `asc` or `desc`  
+
+- `limit` — number of records to return
+- `stationId` — filter by station
+- `order` — `asc` or `desc`
 
 ---
 
 ### 2. GET `/airquality/latest`
+
 Retrieve the most recent air quality measurement.
 
 **Query Parameters (optional):**
+
 - `stationId` — get latest record for a specific station
 
 ---
 
 ### 3. GET `/airquality/history`
+
 Retrieve historical data within a time range.
 
 **Query Parameters:**
-- `from` — start time (ISO 8601)  
-- `to` — end time (ISO 8601)  
-- `stationId` — optional  
-- `limit` — optional  
+
+- `from` — start time (ISO 8601)
+- `to` — end time (ISO 8601)
+- `stationId` — optional
+- `limit` — optional
 
 ---
+
 ## Contributing
 
 We welcome contributions from the community. Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
