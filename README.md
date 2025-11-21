@@ -416,7 +416,7 @@ You should see:
 
 ## Open Data API – Air Quality
 
-Base URL: **https://opendata.quanglv.com/api**
+Base URL: **https://opendata.quanglv.com**
 
 This API provides simple public access to real-time and historical air quality data.
 
