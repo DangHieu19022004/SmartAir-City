@@ -231,6 +231,8 @@ SmartAir-City/
 │   ├── package.json                          # NPM dependencies and scripts
 │   └── package-lock.json                     # NPM lock file
 │
+├── .env.example                              # Example environment variables for docker
+├── docker-compose.yml                        # Docker-compose
 ├── CHANGELOG.md                              # Project changelog
 ├── CONTRIBUTING.md                           # Contribution guidelines
 ├── COPPYRIGHT.txt                            # Used libary and license
