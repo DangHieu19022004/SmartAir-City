@@ -250,18 +250,11 @@ SmartAir-City/
 
 ```
 
-## Usage
+### 1. Clone the project
+```bash
+git clone https://github.com/lequang2009k4/SmartAir-City.git
+cd SmartAir-City
 
-1. Start MongoDB service
-2. Run the backend API server
-3. Start the frontend development server
-4. Access the dashboard at `http://localhost:3000`
-5. View real-time air quality data on the map and charts
-6. Use the API endpoints to send IoT sensor data or query historical records
-
-## Installation
-
-### Backend Setup
 
 1. Navigate to the backend directory:
 ```bash
