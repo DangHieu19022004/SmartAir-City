@@ -282,6 +282,9 @@ $env:MQTT__BrokerPort = "<MQTT_BROKER_PORT>"
 $env:MQTT__Topic      = "<MQTT_TOPIC>"
 
 $env:OpenAQ__ApiKey   = "<YOUR_API_KEY>"
+
+$env:SMTP__FromEmail   = "<YOUR_EMAIL>"
+$env:SMTP__FromEmail   = "<YOUR_APP_PASSWORD>"
 ```
 
 **Linux/macOS**
@@ -294,6 +297,9 @@ export MQTT__BrokerPort="<MQTT_BROKER_PORT>"
 export MQTT__Topic="<MQTT_TOPIC>"
 
 export OpenAQ__ApiKey="<YOUR_API_KEY>"
+
+export SMTP__FromEmail   = "<YOUR_EMAIL>"
+export SMTP__FromEmail   = "<YOUR_APP_PASSWORD>"
 ```
 
 ---
@@ -345,7 +351,7 @@ cd frontend
 npm install
 
 # Prepare environment file
-cp .env.example .env   # Then edit the .env file with your configuration
+cp .env.production .env   # Then edit the .env file with your configuration
 
 # Start development server
 npm start
@@ -357,7 +363,54 @@ Application available at: **http://localhost:3000**
 
 ## 3.2 Docker Deployment
 
-> *(Add your Docker instructions here. If you want, I can write a complete Docker section based on your docker-compose.yml.)*
+### Create the .env File
+
+In the project root, copy a `.env` file:
+
+```env
+cp .env.example .env
+```
+
+---
+
+### Running Docker Deployment
+
+Navigate to the project root:
+
+```bash
+cd SmartAir-City
+```
+
+Then run:
+
+```bash
+docker compose up --build -d
+```
+
+This will:
+
+- Build all backend & frontend services
+- Create the private Docker network `mynet`
+- Load all environment variables from `.env`
+- Expose the correct service ports
+
+---
+
+### Verify Running Containers
+
+```bash
+docker ps
+```
+
+You should see:
+
+| Service              | Port  |
+|----------------------|-------|
+| smartaircity-api     | 5182  |
+| smartcity-core       | 8080  |
+| smartcity-frontend   | 3000  |
+
+---
 
 
 
