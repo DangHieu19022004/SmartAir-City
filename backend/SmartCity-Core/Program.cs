@@ -19,7 +19,7 @@ using MQTTnet.Client;
 using MyMongoApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.WebHost.UseUrls("http://0.0.0.0:8080");
+builder.WebHost.UseUrls("http://127.0.0.1:8080");
 
 builder.Services.Configure<MongoDbSettings>(
 builder.Configuration.GetSection("MongoDbSettings"));
