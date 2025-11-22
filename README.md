@@ -375,7 +375,7 @@ Application available at: **http://localhost:3000**
 In the project root, copy a `.env` file:
 
 ```env
-cp .env.example .env
+cp .env.example .env.local # Then edit the .env file with your configuration
 ```
 
 ---
