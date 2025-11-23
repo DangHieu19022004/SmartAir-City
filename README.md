@@ -473,4 +473,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Authors
 
 - **SmartCity Team** – Initial work  
-  Contact: smartcity@gmail.com
+  Contact: smartaircity@gmail.com
