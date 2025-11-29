@@ -283,13 +283,17 @@ cd SmartAir-City
 **PowerShell (Windows)**
 
 ```powershell
-$env:MQTT__BrokerHost = "<MQTT_BROKER_IP>"
-$env:MQTT__Username   = "<MQTT_USERNAME>"
-$env:MQTT__Password   = "<MQTT_PASSWORD>"
-$env:MQTT__BrokerPort = "<MQTT_BROKER_PORT>"
-$env:MQTT__Topic      = "<MQTT_TOPIC>"
+$env:MQTT__BrokerHost = "YOUR_MQTT_BROKER_HOST"
+$env:MQTT__BrokerPort = "YOUR_MQTT_BROKER_PORT"
+$env:MQTT__Username = "YOUR_MQTT_USERNAME"
+$env:MQTT__Password = "YOUR_MQTT_PASSWORD"
+$env:MQTT__Topics__0 = "YOUR_MQTT_TOPIC_1"
+$env:MQTT__Topics__1 = "YOUR_MQTT_TOPIC_2"
+$env:MQTT__Topics__2 = "YOUR_MQTT_TOPIC_3"
+$env:MQTT__Topics__3 = "YOUR_MQTT_TOPIC_4"
+$env:MQTT__Topics__4 = "YOUR_MQTT_TOPIC_5"
 
-$env:OpenAQ__ApiKey   = "<YOUR_API_KEY>"
+$env:OpenAQ__ApiKey = "YOUR_OPENAQ_API_KEY"
 
 $env:SMTP__FromEmail   = "<YOUR_EMAIL>"
 $env:SMTP__FromEmail   = "<YOUR_APP_PASSWORD>"
@@ -298,13 +302,17 @@ $env:SMTP__FromEmail   = "<YOUR_APP_PASSWORD>"
 **Linux/macOS**
 
 ```bash
-export MQTT__BrokerHost="<MQTT_BROKER_IP>"
-export MQTT__Username="<MQTT_USERNAME>"
-export MQTT__Password="<MQTT_PASSWORD>"
-export MQTT__BrokerPort="<MQTT_BROKER_PORT>"
-export MQTT__Topic="<MQTT_TOPIC>"
+export MQTT__BrokerHost="YOUR_MQTT_BROKER_HOST"
+export MQTT__BrokerPort="YOUR_MQTT_BROKER_PORT"
+export MQTT__Username="YOUR_MQTT_USERNAME"
+export MQTT__Password="YOUR_MQTT_PASSWORD"
+export MQTT__Topics__0="YOUR_MQTT_TOPIC_1"
+export MQTT__Topics__1="YOUR_MQTT_TOPIC_2"
+export MQTT__Topics__2="YOUR_MQTT_TOPIC_3"
+export MQTT__Topics__3="YOUR_MQTT_TOPIC_4"
+export MQTT__Topics__4="YOUR_MQTT_TOPIC_5"
 
-export OpenAQ__ApiKey="<YOUR_API_KEY>"
+export OpenAQ__ApiKey="YOUR_OPENAQ_API_KEY"
 
 export SMTP__FromEmail   = "<YOUR_EMAIL>"
 export SMTP__FromEmail   = "<YOUR_APP_PASSWORD>"
