@@ -7,6 +7,7 @@
  *  @author    SmartAir City Team <smartaircity@gmail.com>
  *  @copyright © 2025 SmartAir City Team. 
  *  @license   MIT License
+ *  See LICENSE file in root directory for full license text.
  *  @see       https://github.com/lequang2009k4/SmartAir-City   SmartAir City Open Source Project
  *
  *  This software is an open-source component of the SmartAir City initiative.
@@ -51,24 +52,90 @@ public class MqttSubscriberService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        // Doc cau hinh tu appsettings.json - khong hardcode
         var host = _configuration["MQTT:BrokerHost"];
-        var port = int.TryParse(_configuration["MQTT:BrokerPort"], out var p) ? p : 1883;
-        var username = _configuration["MQTT:Username"];
-        var password = _configuration["MQTT:Password"];
-        var topic = _configuration["MQTT:Topic"] ?? "air/quality/hanoi/mq135";
-
-        if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+        if (string.IsNullOrEmpty(host))
         {
-            _logger.LogError("MQTT config missing!");
-            return;
+            var errorMsg = "Cau hinh MQTT:BrokerHost khong duoc tim thay trong appsettings.json. Vui long cau hinh trong appsettings.json";
+            _logger.LogError(errorMsg);
+            throw new InvalidOperationException(errorMsg);
+        }
+        
+        // Doc port tu config - khong hardcode
+        var portStr = _configuration["MQTT:BrokerPort"];
+        if (string.IsNullOrEmpty(portStr) || !int.TryParse(portStr, out var port) || port <= 0)
+        {
+            var errorMsg = "Cau hinh MQTT:BrokerPort khong hop le hoac khong duoc tim thay trong appsettings.json. Vui long cau hinh trong appsettings.json";
+            _logger.LogError(errorMsg);
+            throw new InvalidOperationException(errorMsg);
+        }
+        
+        var username = _configuration["MQTT:Username"];
+        if (string.IsNullOrEmpty(username))
+        {
+            var errorMsg = "Cau hinh MQTT:Username khong duoc tim thay trong appsettings.json. Vui long cau hinh trong appsettings.json";
+            _logger.LogError(errorMsg);
+            throw new InvalidOperationException(errorMsg);
+        }
+        
+        var password = _configuration["MQTT:Password"];
+        if (string.IsNullOrEmpty(password))
+        {
+            var errorMsg = "Cau hinh MQTT:Password khong duoc tim thay trong appsettings.json. Vui long cau hinh trong appsettings.json";
+            _logger.LogError(errorMsg);
+            throw new InvalidOperationException(errorMsg);
+        }
+        
+        // Doc danh sach topics tu config - khong hardcode
+        var topics = _configuration.GetSection("MQTT:Topics").Get<string[]>();
+        if (topics == null || topics.Length == 0)
+        {
+            // Fallback: thu doc Topic cu (backward compatible)
+            var singleTopic = _configuration["MQTT:Topic"];
+            if (!string.IsNullOrEmpty(singleTopic))
+            {
+                topics = new[] { singleTopic };
+                _logger.LogInformation("Su dung MQTT:Topic (backward compatible): {Topic}", singleTopic);
+            }
+            else
+            {
+                var errorMsg = "Cau hinh MQTT:Topics hoac MQTT:Topic khong duoc tim thay trong appsettings.json. Vui long cau hinh trong appsettings.json";
+                _logger.LogError(errorMsg);
+                throw new InvalidOperationException(errorMsg);
+            }
         }
 
-        // dang ki su kien message , khi co message den se goi ham xu ly
+        // Su kien khi ket noi thanh cong
+        _mqttClient.ConnectedAsync += async e =>
+        {
+            _logger.LogInformation("Da ket noi MQTT thanh cong toi {Host}:{Port}", host, port);
+            
+            // Subscribe SAU KHI da ket noi thanh cong
+            foreach (var topic in topics)
+            {
+                await _mqttClient.SubscribeAsync(topic);
+                _logger.LogInformation("Subscribed to MQTT topic: {Topic}", topic);
+            }
+            
+            _logger.LogInformation("Total subscribed to {Count} MQTT topics", topics.Length);
+        };
+
+        // Su kien khi mat ket noi
+        _mqttClient.DisconnectedAsync += async e =>
+        {
+            _logger.LogError("Mat ket noi MQTT! Ly do: {Reason}", e.Reason);
+            await Task.CompletedTask;
+        };
+
+        // Su kien khi nhan message
         _mqttClient.ApplicationMessageReceivedAsync += async args =>
         {
+            var payload = Encoding.UTF8.GetString(args.ApplicationMessage.PayloadSegment);
+            _logger.LogInformation("Nhan MQTT MESSAGE tu topic {Topic}: {Payload}", 
+                args.ApplicationMessage.Topic, payload);
+            
             // goi ham xu ly message
-            await HandleMqttMessageAsync(args);  
-            return;
+            await HandleMqttMessageAsync(args);
         };
 
         var clientOpts = new MqttClientOptionsBuilder()
@@ -83,10 +150,8 @@ public class MqttSubscriberService : BackgroundService
             .WithAutoReconnectDelay(TimeSpan.FromSeconds(5))
             .Build();
 
+        _logger.LogInformation("Dang khoi dong MQTT client ket noi toi {Host}:{Port}...", host, port);
         await _mqttClient.StartAsync(managedOpts);
-        await _mqttClient.SubscribeAsync(topic);
-
-        _logger.LogInformation("Subscribed to MQTT topic: {Topic}", topic);
 
         await Task.Delay(Timeout.Infinite, stoppingToken);
     }
@@ -99,14 +164,28 @@ public class MqttSubscriberService : BackgroundService
             var normalization = scope.ServiceProvider.GetRequiredService<DataNormalizationService>();
             var airQualitySvc = scope.ServiceProvider.GetRequiredService<AirQualityService>();
 
+            // Xac dinh tram tu topic
+            var topic = e.ApplicationMessage.Topic;
+            var stationId = ExtractStationIdFromTopic(topic);
+            var (lat, lon, locationId, stationName) = GetStationInfo(stationId);
+            
+            _logger.LogInformation("Processing message from station: {StationName} (ID: {StationId}), Topic: {Topic}", 
+                stationName, stationId, topic);
+
             // doc json tu iot
             var payload = Encoding.UTF8.GetString(e.ApplicationMessage.PayloadSegment);
             _logger.LogInformation("MQTT Payload: {Payload}", payload);
 
             var jsonDoc = JsonDocument.Parse(payload);
 
-            // chuan hoa va hop nhat
-            var merged = await normalization.NormalizeAndMergeAsync(jsonDoc.RootElement);
+            // chuan hoa va hop nhat - truyền thông tin trạm vào
+            var merged = await normalization.NormalizeAndMergeAsync(
+                jsonDoc.RootElement,
+                lat,
+                lon,
+                locationId,
+                stationId  // Truyen stationId de lay sensor mapping rieng
+            );
 
             // luu vao db
             await airQualitySvc.InsertAsync(merged);
@@ -114,12 +193,92 @@ public class MqttSubscriberService : BackgroundService
             // Push len SignalR
             await _signalRHub.Clients.All.SendAsync("NewAirQualityData", merged);
 
-            _logger.LogInformation("Message processed OK");
+            _logger.LogInformation("Message processed OK for station: {StationName}", stationName);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error handling MQTT message");
+            _logger.LogError(ex, "Error handling MQTT message from topic: {Topic}", e.ApplicationMessage.Topic);
         }
+    }
+
+    /// <summary>
+    /// Trich xuat station ID tu MQTT topic
+    /// Vd: "air/quality/hcm/cmt8" -> "hcm-cmt8"
+    ///        "air/quality/hanoi/mq135" -> "hanoi-mq135"
+    /// </summary>
+    private string ExtractStationIdFromTopic(string topic)
+    {
+        try
+        {
+            // Topic format: "air/quality/{city}/{location}" (vd: "air/quality/hcm/cmt8")
+            var parts = topic.Split('/');
+            if (parts.Length >= 4)
+            {
+                var city = parts[2];     // "hcm", "hanoi"
+                var location = parts[3];  // "cmt8", "carecentre", "mq135"
+                return $"{city}-{location}";
+            }
+            
+            // Fallback
+            _logger.LogWarning("Cannot extract station ID from topic: {Topic}", topic);
+            return "unknown";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error extracting station ID from topic: {Topic}", topic);
+            return "unknown";
+        }
+    }
+
+    /// <summary>
+    /// Lay thong tin tram tu config dua vao station ID
+    /// </summary>
+    private (double Latitude, double Longitude, int LocationId, string StationName) GetStationInfo(string stationId)
+    {
+        try
+        {
+            var name = _configuration[$"StationMapping:{stationId}:Name"];
+            var lat = _configuration.GetValue<double>($"StationMapping:{stationId}:Latitude");
+            var lon = _configuration.GetValue<double>($"StationMapping:{stationId}:Longitude");
+            var locationId = _configuration.GetValue<int>($"StationMapping:{stationId}:OpenAQLocationId");
+            
+            if (!string.IsNullOrEmpty(name) && lat != 0 && lon != 0 && locationId != 0)
+            {
+                _logger.LogDebug("Found station config: {StationId} -> {Name}, Lat={Lat}, Lon={Lon}, LocationId={LocationId}", 
+                    stationId, name, lat, lon, locationId);
+                return (lat, lon, locationId, name);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error reading station config for: {StationId}", stationId);
+        }
+        
+        // Fallback: dung default config tu appsettings.json - khong hardcode
+        _logger.LogWarning("Tram {StationId} khong tim thay trong StationMapping, su dung gia tri mac dinh tu OpenAQ config", stationId);
+        
+        var defaultLatStr = _configuration["OpenAQ:DefaultLatitude"];
+        if (string.IsNullOrEmpty(defaultLatStr) || !double.TryParse(defaultLatStr, out var defaultLat))
+        {
+            _logger.LogError("Cau hinh OpenAQ:DefaultLatitude khong hop le cho tram {StationId}", stationId);
+            defaultLat = 0;
+        }
+        
+        var defaultLonStr = _configuration["OpenAQ:DefaultLongitude"];
+        if (string.IsNullOrEmpty(defaultLonStr) || !double.TryParse(defaultLonStr, out var defaultLon))
+        {
+            _logger.LogError("Cau hinh OpenAQ:DefaultLongitude khong hop le cho tram {StationId}", stationId);
+            defaultLon = 0;
+        }
+        
+        var defaultLocIdStr = _configuration["OpenAQ:LocationId"];
+        if (string.IsNullOrEmpty(defaultLocIdStr) || !int.TryParse(defaultLocIdStr, out var defaultLocId))
+        {
+            _logger.LogError("Cau hinh OpenAQ:LocationId khong hop le cho tram {StationId}", stationId);
+            defaultLocId = 0;
+        }
+        
+        return (defaultLat, defaultLon, defaultLocId, $"Unknown Station ({stationId})");
     }
 
     public override async Task StopAsync(CancellationToken cancellationToken)

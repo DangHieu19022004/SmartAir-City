@@ -7,6 +7,7 @@
  *  @author    SmartAir City Team <smartaircity@gmail.com>
  *  @copyright © 2025 SmartAir City Team. 
  *  @license   MIT License
+ *  See LICENSE file in root directory for full license text.
  *  @see       https://github.com/lequang2009k4/SmartAir-City   SmartAir City Open Source Project
  *
  *  This software is an open-source component of the SmartAir City initiative.
@@ -14,7 +15,6 @@
  *  models, MQTT-based data ingestion, and FiWARE Smart Data Models for
  *  open-data services and smart-city applications.
  */
-
 
 using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
@@ -26,18 +26,35 @@ public class MongoDbContext
 {
     public IMongoDatabase Database { get; }
     public IMongoCollection<AirQuality> AirQuality { get; }
-    public IMongoCollection<AirQuality> ContributedData { get; }
+    public IMongoCollection<ContributedAirQuality> ContributedData { get; }
 
-    public MongoDbContext(IConfiguration config)
+    public MongoDbContext(IConfiguration config, ILogger<MongoDbContext> logger)
     {
-        var conn = config.GetConnectionString("MongoDb") 
-           ?? "mongodb://localhost:27017";
+        // Doc connection string tu appsettings.json - khong hardcode
+        var conn = config.GetConnectionString("MongoDb");
+        if (string.IsNullOrEmpty(conn))
+        {
+            var errorMsg = "Cau hinh ConnectionStrings:MongoDb khong duoc tim thay trong appsettings.json. Vui long cau hinh trong appsettings.json";
+            logger.LogError(errorMsg);
+            throw new InvalidOperationException(errorMsg);
+        }
+        
         var client = new MongoClient(conn);
 
-        var dbName = config["Mongo:Database"] ?? "smartaircityDB";
+        // Doc database name tu appsettings.json - khong hardcode
+        var dbName = config["Mongo:Database"];
+        if (string.IsNullOrEmpty(dbName))
+        {
+            var errorMsg = "Cau hinh Mongo:Database khong duoc tim thay trong appsettings.json. Vui long cau hinh trong appsettings.json";
+            logger.LogError(errorMsg);
+            throw new InvalidOperationException(errorMsg);
+        }
+        
         Database = client.GetDatabase(dbName);
 
         AirQuality = Database.GetCollection<AirQuality>("AirQuality");
-        ContributedData = Database.GetCollection<AirQuality>("ContributedData");
+        ContributedData = Database.GetCollection<ContributedAirQuality>("ContributedData");
+        
+        logger.LogInformation("MongoDB da ket noi toi database: {DatabaseName}", dbName);
     }
 }
