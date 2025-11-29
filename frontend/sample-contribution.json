@@ -25,37 +25,37 @@
     "pm25": {
       "type": "Property",
       "value": 85.5,
-      "unitCode": "µg/m³",
+      "unitCode": "GQ",
       "observedAt": "2025-11-23T14:00:00Z"
     },
     "pm10": {
       "type": "Property",
       "value": 120.3,
-      "unitCode": "µg/m³",
+      "unitCode": "GQ",
       "observedAt": "2025-11-23T14:00:00Z"
     },
     "o3": {
       "type": "Property",
       "value": 55.2,
-      "unitCode": "µg/m³",
+      "unitCode": "GQ",
       "observedAt": "2025-11-23T14:00:00Z"
     },
     "no2": {
       "type": "Property",
       "value": 1.5,
-      "unitCode": "µg/m³",
+      "unitCode": "GQ",
       "observedAt": "2025-11-23T14:00:00Z"
     },
     "so2": {
       "type": "Property",
       "value": 25.8,
-      "unitCode": "µg/m³",
+      "unitCode": "GQ",
       "observedAt": "2025-11-23T14:00:00Z"
     },
     "co": {
       "type": "Property",
       "value": 1150.5,
-      "unitCode": "µg/m³",
+      "unitCode": "GQ",
       "observedAt": "2025-11-23T14:00:00Z"
     },
     "airQualityIndex": {
@@ -91,37 +91,37 @@
     "pm25": {
       "type": "Property",
       "value": 87.2,
-      "unitCode": "µg/m³",
+      "unitCode": "GQ",
       "observedAt": "2025-11-23T14:05:00Z"
     },
     "pm10": {
       "type": "Property",
       "value": 122.8,
-      "unitCode": "µg/m³",
+      "unitCode": "GQ",
       "observedAt": "2025-11-23T14:05:00Z"
     },
     "o3": {
       "type": "Property",
       "value": 56.1,
-      "unitCode": "µg/m³",
+      "unitCode": "GQ",
       "observedAt": "2025-11-23T14:05:00Z"
     },
     "no2": {
       "type": "Property",
       "value": 1.6,
-      "unitCode": "µg/m³",
+      "unitCode": "GQ",
       "observedAt": "2025-11-23T14:05:00Z"
     },
     "so2": {
       "type": "Property",
       "value": 26.2,
-      "unitCode": "µg/m³",
+      "unitCode": "GQ",
       "observedAt": "2025-11-23T14:05:00Z"
     },
     "co": {
       "type": "Property",
       "value": 1165.3,
-      "unitCode": "µg/m³",
+      "unitCode": "GQ",
       "observedAt": "2025-11-23T14:05:00Z"
     },
     "airQualityIndex": {
