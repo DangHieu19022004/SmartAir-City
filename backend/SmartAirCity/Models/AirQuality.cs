@@ -7,6 +7,7 @@
  *  @author    SmartAir City Team <smartaircity@gmail.com>
  *  @copyright © 2025 SmartAir City Team. 
  *  @license   MIT License
+ *  See LICENSE file in root directory for full license text.
  *  @see       https://github.com/lequang2009k4/SmartAir-City   SmartAir City Open Source Project
  *
  *  This software is an open-source component of the SmartAir City initiative.
@@ -14,6 +15,7 @@
  *  models, MQTT-based data ingestion, and FiWARE Smart Data Models for
  *  open-data services and smart-city applications.
  */
+
 
 
 using MongoDB.Bson;
@@ -75,6 +77,17 @@ public class DateTimeProperty
     public DateTime Value { get; set; }
 }
 
+public class Relationship
+{
+    [BsonElement("type")]
+    [JsonPropertyName("type")]
+    public string Type { get; set; } = "Relationship";
+
+    [BsonElement("object")]
+    [JsonPropertyName("object")]
+    public string Object { get; set; } = string.Empty;
+}
+
 [BsonIgnoreExtraElements]
 public class AirQuality
 {
@@ -101,15 +114,15 @@ public class AirQuality
 
     [BsonElement("sosa:madeBySensor")]
     [JsonPropertyName("sosa:madeBySensor")]
-    public string? MadeBySensor { get; set; }
+    public Relationship? MadeBySensor { get; set; }
 
     [BsonElement("sosa:observedProperty")]
     [JsonPropertyName("sosa:observedProperty")]
-    public string? ObservedProperty { get; set; }
+    public Relationship? ObservedProperty { get; set; }
 
     [BsonElement("sosa:hasFeatureOfInterest")]
     [JsonPropertyName("sosa:hasFeatureOfInterest")]
-    public string? HasFeatureOfInterest { get; set; }
+    public Relationship? HasFeatureOfInterest { get; set; }
 
     [BsonElement("location")]
     [JsonPropertyName("location")]
@@ -122,28 +135,28 @@ public class AirQuality
         Value = DateTime.UtcNow
     };
 
-    [BsonElement("pm25")]
-    [JsonPropertyName("pm25")]
+    [BsonElement("PM25")]
+    [JsonPropertyName("PM25")]
     public NumericProperty? Pm25 { get; set; }
 
-    [BsonElement("pm10")]
-    [JsonPropertyName("pm10")]
+    [BsonElement("PM10")]
+    [JsonPropertyName("PM10")]
     public NumericProperty? Pm10 { get; set; }
 
-    [BsonElement("o3")]
-    [JsonPropertyName("o3")]
+    [BsonElement("O3")]
+    [JsonPropertyName("O3")]
     public NumericProperty? O3 { get; set; }
 
-    [BsonElement("no2")]
-    [JsonPropertyName("no2")]
+    [BsonElement("NO2")]
+    [JsonPropertyName("NO2")]
     public NumericProperty? No2 { get; set; }
 
-    [BsonElement("so2")]
-    [JsonPropertyName("so2")]
+    [BsonElement("SO2")]
+    [JsonPropertyName("SO2")]
     public NumericProperty? So2 { get; set; }
 
-    [BsonElement("co")]
-    [JsonPropertyName("co")]
+    [BsonElement("CO")]
+    [JsonPropertyName("CO")]
     public NumericProperty? Co { get; set; }
 
     [BsonElement("airQualityIndex")]

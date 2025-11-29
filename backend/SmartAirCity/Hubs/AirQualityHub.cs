@@ -7,6 +7,7 @@
  *  @author    SmartAir City Team <smartaircity@gmail.com>
  *  @copyright © 2025 SmartAir City Team. 
  *  @license   MIT License
+ *  See LICENSE file in root directory for full license text.
  *  @see       https://github.com/lequang2009k4/SmartAir-City   SmartAir City Open Source Project
  *
  *  This software is an open-source component of the SmartAir City initiative.
@@ -14,6 +15,7 @@
  *  models, MQTT-based data ingestion, and FiWARE Smart Data Models for
  *  open-data services and smart-city applications.
  */
+
 
 using Microsoft.AspNetCore.SignalR;
 
