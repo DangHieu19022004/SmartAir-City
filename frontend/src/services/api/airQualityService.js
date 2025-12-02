@@ -39,13 +39,25 @@ import { airQualityAxios } from './axiosInstance';
 export const transformAirQualityData = (ngsiData) => {
   if (!ngsiData) return null;
 
+  // Debug log - Check data format
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔍 [transformAirQualityData] Input data keys:', Object.keys(ngsiData));
+    console.log('🔍 [transformAirQualityData] Pollutants format check:', {
+      hasUppercase: !!(ngsiData.PM25 || ngsiData.PM10),
+      hasLowercase: !!(ngsiData.pm25 || ngsiData.pm10),
+      PM25: ngsiData.PM25?.value,
+      pm25: ngsiData.pm25?.value,
+    });
+  }
+
   // Extract location info
   const locationCoords = ngsiData.location?.value?.coordinates || [105.852, 21.034];
-  const sensorId = ngsiData['sosa:madeBySensor'] || ngsiData.id;
+  const sensorIdRaw = ngsiData['sosa:madeBySensor'] || ngsiData.id;
+  const sensorId = typeof sensorIdRaw === 'string' ? sensorIdRaw : (sensorIdRaw?.object || ngsiData.id);
   
   // Generate friendly name from sensor ID or location
   const generateName = () => {
-    if (sensorId && sensorId.includes(':')) {
+    if (typeof sensorId === 'string' && sensorId.includes(':')) {
       const parts = sensorId.split(':');
       return parts[parts.length - 1].toUpperCase();
     }
@@ -80,12 +92,13 @@ export const transformAirQualityData = (ngsiData) => {
     aqiUnitCode: ngsiData.airQualityIndex?.unitCode,
     
     // Pollutants (GQ = µg/m³ per UN/CEFACT)
-    pm25: ngsiData.pm25?.value || 0,
-    pm10: ngsiData.pm10?.value || 0,
-    o3: ngsiData.o3?.value || 0,
-    no2: ngsiData.no2?.value || 0,
-    so2: ngsiData.so2?.value || 0,
-    co: ngsiData.co?.value || 0,
+    // Support both uppercase (from backend) and lowercase (legacy)
+    pm25: ngsiData.PM25?.value || ngsiData.pm25?.value || 0,
+    pm10: ngsiData.PM10?.value || ngsiData.pm10?.value || 0,
+    o3: ngsiData.O3?.value || ngsiData.o3?.value || 0,
+    no2: ngsiData.NO2?.value || ngsiData.no2?.value || 0,
+    so2: ngsiData.SO2?.value || ngsiData.so2?.value || 0,
+    co: ngsiData.CO?.value || ngsiData.co?.value || 0,
     
     // Environmental data (with fallbacks)
     temperature: ngsiData.temperature?.value || 25,
@@ -94,34 +107,34 @@ export const transformAirQualityData = (ngsiData) => {
     // Pollutants metadata
     pollutants: {
       pm25: {
-        value: ngsiData.pm25?.value || 0,
-        unit: ngsiData.pm25?.unitCode || 'GQ',
-        observedAt: ngsiData.pm25?.observedAt,
+        value: ngsiData.PM25?.value || ngsiData.pm25?.value || 0,
+        unit: ngsiData.PM25?.unitCode || ngsiData.pm25?.unitCode || 'GQ',
+        observedAt: ngsiData.PM25?.observedAt || ngsiData.pm25?.observedAt,
       },
       pm10: {
-        value: ngsiData.pm10?.value || 0,
-        unit: ngsiData.pm10?.unitCode || 'GQ',
-        observedAt: ngsiData.pm10?.observedAt,
+        value: ngsiData.PM10?.value || ngsiData.pm10?.value || 0,
+        unit: ngsiData.PM10?.unitCode || ngsiData.pm10?.unitCode || 'GQ',
+        observedAt: ngsiData.PM10?.observedAt || ngsiData.pm10?.observedAt,
       },
       o3: {
-        value: ngsiData.o3?.value || 0,
-        unit: ngsiData.o3?.unitCode || 'GQ',
-        observedAt: ngsiData.o3?.observedAt,
+        value: ngsiData.O3?.value || ngsiData.o3?.value || 0,
+        unit: ngsiData.O3?.unitCode || ngsiData.o3?.unitCode || 'GQ',
+        observedAt: ngsiData.O3?.observedAt || ngsiData.o3?.observedAt,
       },
       no2: {
-        value: ngsiData.no2?.value || 0,
-        unit: ngsiData.no2?.unitCode || 'GQ',
-        observedAt: ngsiData.no2?.observedAt,
+        value: ngsiData.NO2?.value || ngsiData.no2?.value || 0,
+        unit: ngsiData.NO2?.unitCode || ngsiData.no2?.unitCode || 'GQ',
+        observedAt: ngsiData.NO2?.observedAt || ngsiData.no2?.observedAt,
       },
       so2: {
-        value: ngsiData.so2?.value || 0,
-        unit: ngsiData.so2?.unitCode || 'GQ',
-        observedAt: ngsiData.so2?.observedAt,
+        value: ngsiData.SO2?.value || ngsiData.so2?.value || 0,
+        unit: ngsiData.SO2?.unitCode || ngsiData.so2?.unitCode || 'GQ',
+        observedAt: ngsiData.SO2?.observedAt || ngsiData.so2?.observedAt,
       },
       co: {
-        value: ngsiData.co?.value || 0,
-        unit: ngsiData.co?.unitCode || 'GQ',
-        observedAt: ngsiData.co?.observedAt,
+        value: ngsiData.CO?.value || ngsiData.co?.value || 0,
+        unit: ngsiData.CO?.unitCode || ngsiData.co?.unitCode || 'GQ',
+        observedAt: ngsiData.CO?.observedAt || ngsiData.co?.observedAt,
       },
     },
     
@@ -147,13 +160,18 @@ export const transformAirQualityArray = (ngsiArray) => {
 /**
  * Get all air quality records
  * @param {number} limit - Maximum number of records (default: 50)
+ * @param {string|null} stationId - Filter by station ID (optional, NEW)
  * @param {boolean} transform - Transform to frontend format (default: true)
  * @returns {Promise<array>} Array of air quality records
  */
-export const getAll = async (limit = 50, transform = true) => {
-  const data = await airQualityAxios.get('/api/airquality', {
-    params: { limit }
-  });
+export const getAll = async (limit = 50, stationId = null, transform = true) => {
+  const params = { limit };
+  if (stationId) {
+    params.stationId = stationId;
+    console.log(`🔍 [airQualityService] Filtering by stationId: ${stationId}`);
+  }
+  
+  const data = await airQualityAxios.get('/api/airquality', { params });
   
   console.log('📦 [airQualityService] getAll raw data:', data?.length, 'items, transform:', transform);
   console.log('📦 [airQualityService] First item structure:', data[0]);
@@ -168,11 +186,18 @@ export const getAll = async (limit = 50, transform = true) => {
 
 /**
  * Get latest air quality record
+ * @param {string|null} stationId - Filter by station ID (optional, NEW)
  * @param {boolean} transform - Transform to frontend format (default: true)
  * @returns {Promise<object>} Latest air quality record
  */
-export const getLatest = async (transform = true) => {
-  const data = await airQualityAxios.get('/api/airquality/latest');
+export const getLatest = async (stationId = null, transform = true) => {
+  const params = stationId ? { stationId } : {};
+  
+  if (stationId) {
+    console.log(`🔍 [airQualityService] getLatest filtering by stationId: ${stationId}`);
+  }
+  
+  const data = await airQualityAxios.get('/api/airquality/latest', { params });
   
   return transform ? transformAirQualityData(data) : data;
 };
@@ -181,20 +206,26 @@ export const getLatest = async (transform = true) => {
  * Get historical air quality data
  * @param {string|Date} from - Start date (ISO 8601 or Date object)
  * @param {string|Date} to - End date (ISO 8601 or Date object)
+ * @param {string|null} stationId - Filter by station ID (optional, NEW)
  * @param {boolean} transform - Transform to frontend format (default: true)
  * @returns {Promise<array>} Array of historical records
  */
-export const getHistory = async (from, to, transform = true) => {
+export const getHistory = async (from, to, stationId = null, transform = true) => {
   // Convert Date objects to ISO strings
   const fromStr = from instanceof Date ? from.toISOString() : from;
   const toStr = to instanceof Date ? to.toISOString() : to;
   
-  const data = await airQualityAxios.get('/api/airquality/history', {
-    params: {
-      from: fromStr,
-      to: toStr,
-    }
-  });
+  const params = {
+    from: fromStr,
+    to: toStr,
+  };
+  
+  if (stationId) {
+    params.stationId = stationId;
+    console.log(`🔍 [airQualityService] getHistory filtering by stationId: ${stationId}`);
+  }
+  
+  const data = await airQualityAxios.get('/api/airquality/history', { params });
   
   return transform ? transformAirQualityArray(data) : data;
 };
@@ -211,15 +242,17 @@ export const postIotData = async (iotData) => {
 
 /**
  * Get latest air quality data for all locations (alias for compatibility)
- * @param {object} params - Query parameters (location, limit, etc.)
+ * @param {object} params - Query parameters (stationId, location, limit, etc.)
  * @returns {Promise<array>} Array of latest air quality records
  */
 export const getLatestData = async (params = {}) => {
   const limit = params.limit || 50;
-  const data = await getAll(limit, true);
+  const stationId = params.stationId || null; // NEW: Support stationId
   
-  // Filter by location if provided
-  if (params.location) {
+  const data = await getAll(limit, stationId, true);
+  
+  // Legacy filter by location if provided (for backwards compatibility)
+  if (params.location && !stationId) {
     return Array.isArray(data) 
       ? data.filter(item => item.location?.coordinates?.toString().includes(params.location))
       : [];
@@ -230,17 +263,19 @@ export const getLatestData = async (params = {}) => {
 
 /**
  * Get historical air quality data for a specific location
- * @param {string} locationId - Location ID or coordinates
+ * @param {string} locationId - Location ID, station ID, or coordinates
  * @param {string|Date} startDate - Start date
  * @param {string|Date} endDate - End date
  * @returns {Promise<array>} Array of historical records
  */
 export const getHistoricalData = async (locationId, startDate, endDate) => {
-  const data = await getHistory(startDate, endDate, true);
+  // Try using stationId filter first (NEW API feature)
+  const data = await getHistory(startDate, endDate, locationId, true);
   
-  // Filter by location if provided
-  if (locationId && Array.isArray(data)) {
-    return data.filter(item => 
+  // If no results with stationId, try legacy location filtering
+  if (locationId && Array.isArray(data) && data.length === 0) {
+    const allData = await getHistory(startDate, endDate, null, true);
+    return allData.filter(item => 
       item.id === locationId || 
       item.location?.coordinates?.toString().includes(locationId)
     );
@@ -272,7 +307,7 @@ export const getLocationData = async (locationId) => {
  * @returns {Promise<array>} Array of alerts
  */
 export const getAlerts = async (params = {}) => {
-  const data = await getAll(50, true);
+  const data = await getAll(50, null);
   
   if (!Array.isArray(data)) return [];
   
@@ -401,6 +436,97 @@ export const getDateRange = (period) => {
 };
 
 // ============================================
+// DOWNLOAD FUNCTIONS (NEW API)
+// ============================================
+
+/**
+ * Download air quality data as JSON file
+ * @param {string|null} stationId - Filter by station ID (optional)
+ * @param {number} limit - Maximum number of records (default: 100)
+ * @param {string} format - File format (default: 'json')
+ * @returns {Promise<object>} Download result
+ */
+export const downloadAirQuality = async (stationId = null, limit = 100, format = 'json') => {
+  try {
+    console.log('📥 [airQualityService] Downloading air quality data...', { stationId, limit, format });
+    
+    const params = { limit, format };
+    if (stationId) params.stationId = stationId;
+    
+    const response = await airQualityAxios.get('/api/airquality/download', {
+      params,
+      responseType: 'blob',
+    });
+    
+    // Create download link
+    const url = window.URL.createObjectURL(new Blob([response]));
+    const link = document.createElement('a');
+    link.href = url;
+    const filename = stationId 
+      ? `airquality-${stationId}-${Date.now()}.json`
+      : `airquality-${Date.now()}.json`;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+    
+    console.log('✅ [airQualityService] Download started:', filename);
+    
+    return { success: true, filename };
+  } catch (error) {
+    console.error('❌ [airQualityService] Download error:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Download historical air quality data as JSON file
+ * @param {string|Date} from - Start date
+ * @param {string|Date} to - End date
+ * @param {string|null} stationId - Filter by station ID (optional)
+ * @param {string} format - File format (default: 'json')
+ * @returns {Promise<object>} Download result
+ */
+export const downloadHistory = async (from, to, stationId = null, format = 'json') => {
+  try {
+    const fromStr = from instanceof Date ? from.toISOString() : from;
+    const toStr = to instanceof Date ? to.toISOString() : to;
+    
+    console.log('📥 [airQualityService] Downloading history...', { from: fromStr, to: toStr, stationId });
+    
+    const params = { from: fromStr, to: toStr, format };
+    if (stationId) params.stationId = stationId;
+    
+    const response = await airQualityAxios.get('/api/airquality/history/download', {
+      params,
+      responseType: 'blob',
+    });
+    
+    // Create download link
+    const url = window.URL.createObjectURL(new Blob([response]));
+    const link = document.createElement('a');
+    link.href = url;
+    const dateStr = new Date().toISOString().split('T')[0];
+    const filename = stationId
+      ? `airquality-history-${stationId}-${dateStr}.json`
+      : `airquality-history-${dateStr}.json`;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+    
+    console.log('✅ [airQualityService] Download started:', filename);
+    
+    return { success: true, filename };
+  } catch (error) {
+    console.error('❌ [airQualityService] Download error:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// ============================================
 // DEFAULT EXPORT
 // ============================================
 
@@ -410,6 +536,10 @@ const airQualityService = {
   getLatest,
   getHistory,
   postIotData,
+  
+  // Download methods (NEW)
+  downloadAirQuality,
+  downloadHistory,
   
   // Extended methods (for hooks compatibility)
   getLatestData,

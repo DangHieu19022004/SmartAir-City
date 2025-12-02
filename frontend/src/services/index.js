@@ -141,12 +141,12 @@ export { default as contributionsService } from './api/contributionsService';
 
 export {
   uploadFile as uploadContributionFile,
-  submitJson as submitContributionJson,
-  getAll as getContributionsAll,
-  getStations as getContributionStations,
-  getByStation as getContributionsByStation,
   validateJsonStructure,
   formatContribution,
+  getPublicStats as getContributionsPublicStats,
+  getContributionList,
+  getLatestByContributionId,
+  downloadContribution,
 } from './api/contributionsService';
 
 // ============================================
