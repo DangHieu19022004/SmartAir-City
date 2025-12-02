@@ -27,8 +27,8 @@ const AirQualityContext = createContext(null);
  * Manages global air quality state and WebSocket connection
  */
 export const AirQualityProvider = ({ children }) => {
-  // State management
-  const [latestData, setLatestData] = useState([]);
+  // State management - latestData theo format: { 'hanoi-oceanpark': {...}, 'hcm-cmt8': {...}, ... }
+  const [latestData, setLatestData] = useState({});
   const [historicalData, setHistoricalData] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -73,8 +73,16 @@ export const AirQualityProvider = ({ children }) => {
       console.log('✅ [AirQualityContext] Final transformed data:', transformedData?.length, 'records');
       console.log('📦 [AirQualityContext] First transformed item:', transformedData[0]);
       
+      // Convert array to object keyed by stationId (extracted from name/location)
       if (isMountedRef.current) {
-        setLatestData(transformedData);
+        const stationMap = {};
+        transformedData.forEach(item => {
+          // Extract stationId from item (use name as key for now)
+          const stationKey = item.name?.toLowerCase().replace(/\s+/g, '-') || item.id;
+          stationMap[stationKey] = item;
+        });
+        console.log('✅ [AirQualityContext] Converted to station map:', Object.keys(stationMap));
+        setLatestData(stationMap);
       }
     } catch (err) {
       console.error('❌ [AirQualityContext] Error fetching latest data:', err);
@@ -166,29 +174,24 @@ export const AirQualityProvider = ({ children }) => {
       console.log('📡 [AirQualityContext] New air quality data received:', data);
       
       if (isMountedRef.current) {
-        // WebSocket sends single object, wrap in array if needed
-        const dataArray = Array.isArray(data) ? data : [data];
+        // Extract stationId from data
+        const stationId = data.stationId;
+        
+        if (!stationId) {
+          console.warn('⚠️ [AirQualityContext] Received data without stationId:', data);
+          return;
+        }
         
         setLatestData(prevData => {
-          console.log('🔄 [AirQualityContext] Updating latestData. Previous count:', prevData.length);
+          console.log('🔄 [AirQualityContext] Updating station:', stationId);
           
-          // Create new array with updated data
-          const updatedData = [...prevData];
+          // Update specific station data
+          const updatedData = {
+            ...prevData,
+            [stationId]: data
+          };
           
-          dataArray.forEach(newItem => {
-            const index = updatedData.findIndex(item => item.id === newItem.id);
-            if (index !== -1) {
-              // Update existing item
-              console.log('✏️ [AirQualityContext] Updating item:', newItem.id, 'AQI:', newItem.aqi);
-              updatedData[index] = newItem;
-            } else {
-              // Add new item
-              console.log('➕ [AirQualityContext] Adding new item:', newItem.id, 'AQI:', newItem.aqi);
-              updatedData.push(newItem);
-            }
-          });
-          
-          console.log('✅ [AirQualityContext] Updated latestData. New count:', updatedData.length);
+          console.log('✅ [AirQualityContext] Updated latestData. Station count:', Object.keys(updatedData).length);
           return updatedData;
         });
       }
